@@ -18,7 +18,18 @@ const main = async() => {
     signers: [baseAccount],
   });
 
-  console.log("📝 Your transaction signature", tx);
+  const baseAccount2 = anchor.web3.Keypair.generate();
+
+  let tx2 = await program.rpc.initialize({
+    accounts: {
+      baseAccount: baseAccount2.publicKey,
+      user: provider.wallet.publicKey,
+      systemProgram: SystemProgram.programId,
+    },
+    signers: [baseAccount2],
+  });
+
+  console.log("📝 Your transaction signature", tx, tx2);
   let account = await program.account.baseAccount.fetch(baseAccount.publicKey);
   console.log("📝 Your account", account);
 }

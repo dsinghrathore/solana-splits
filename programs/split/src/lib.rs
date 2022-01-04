@@ -1,6 +1,7 @@
 use anchor_lang::prelude::Pubkey;
 use anchor_lang::prelude::*;
 use percentage::Percentage;
+use std::collections::HashMap;
 
 declare_id!("3hDf6fvSXgYKHSDSKvUZriJvUspTqQD5cSG7up61xJxw");
 
@@ -9,31 +10,21 @@ pub mod split {
     use super::*;
     pub fn initialize(ctx: Context<Initialize>) -> ProgramResult {
         let base_account = &mut ctx.accounts.base_account;
-        base_account.total_amount = 0;
-        base_account.total_splits = 0;
-        base_account.inited = true;
+        base_account.splits_count = 0;
 
         Ok(())
     }
 
     pub fn new_split(
         ctx: Context<NewSplitContext>,
-        addresses: Vec<Pubkey>,
-        percentages: Vec<u64>,
+        split: HashMap<Pubkey, u64>
     ) -> ProgramResult {
         let base_account = &mut ctx.accounts.base_account;
-        let admin_account = &mut ctx.accounts.admin_account;
         let mut total_percentage = 0;
         let mut index = 0;
 
-        assert_eq!(
-            addresses.len(),
-            percentages.len(),
-            "NEW SPLIT: number of addresses should be equal to number of percentages"
-        );
-
-        for ac_address in addresses.iter() {
-            total_percentage = total_percentage + percentages[index];
+        for item in split.iter() {
+            total_percentage = total_percentage + item.1;
             index = index + 1;
         }
 
@@ -42,36 +33,24 @@ pub mod split {
             "NEW SPLIT: total percentage should be 100"
         );
 
-        admin_account.admin_address = admin_account.key();
-        admin_account.addresses = addresses;
-        admin_account.percentages = percentages;
-        base_account.total_splits = base_account.total_splits + 1;
+        let new_split_id = base_account.splits_count + 1;
+        base_account.splits.insert(new_split_id, split);
 
         Ok(())
     }
 
     pub fn send_sol<'a, 'b, 'c, 'info>(
         ctx: Context<'a, 'b, 'c, 'info, SenderContext<'info>>,
+        split_id: u64,
         amount: u64,
     ) -> ProgramResult {
-        let base_account = &mut ctx.accounts.base_account;
-        let admin_account = &mut ctx.accounts.admin_account;
+        let split_ref = &ctx.accounts.base_account.splits[&split_id];
         let msg_sender = &mut ctx.accounts.msg_sender;
         let mut index = 0;
 
-        // iterate over the remaining_accounts
-        // check if the account pubkey exists in list of pubkeys
-        // find the index of pubkey
-        // fetch the percentage with the same index in list of percentages
-
         for rc_account in ctx.remaining_accounts.iter() {
-            if admin_account.addresses.contains(&rc_account.key()) {
-                let pubkey_index = admin_account
-                    .addresses
-                    .iter()
-                    .position(|&r| r == rc_account.key())
-                    .unwrap();
-                let split_percentage = Percentage::from(admin_account.percentages[pubkey_index]);
+            if split_ref.contains_key(&rc_account.key()) {
+                let split_percentage = Percentage::from(split_ref[&rc_account.key()]);
                 let split_amount = split_percentage.apply_to(amount);
 
                 let ix = anchor_lang::solana_program::system_instruction::transfer(
@@ -87,16 +66,21 @@ pub mod split {
                         ctx.remaining_accounts[index].to_account_info(),
                     ],
                 );
+
                 index = index + 1;
             }
 
             panic!("account address doesn't exist in splits info");
         }
 
-        base_account.total_amount = amount;
-
         Ok(())
     }
+}
+
+#[account]
+pub struct BaseAccount {
+    pub splits_count: u64,
+    pub splits: HashMap<u64, HashMap<Pubkey, u64>>
 }
 
 #[derive(Accounts)]
@@ -110,32 +94,15 @@ pub struct Initialize<'info> {
 
 #[derive(Accounts)]
 pub struct NewSplitContext<'info> {
-    #[account(init, payer = user, space = 9000)]
-    pub admin_account: Account<'info, AdminAccount>,
     #[account(mut)]
     pub base_account: Account<'info, BaseAccount>,
     pub user: Signer<'info>,
     pub system_program: Program<'info, System>,
 }
 
-#[account]
-pub struct BaseAccount {
-    pub inited: bool,
-    pub total_splits: u64,
-    pub total_amount: u64,
-}
-
-#[account]
-pub struct AdminAccount {
-    pub admin_address: Pubkey,
-    pub addresses: Vec<Pubkey>,
-    pub percentages: Vec<u64>,
-}
-
 #[derive(Accounts)]
 pub struct SenderContext<'info> {
     #[account(mut)]
     pub base_account: Account<'info, BaseAccount>,
-    pub admin_account: Account<'info, AdminAccount>,
     pub msg_sender: Signer<'info>,
 }

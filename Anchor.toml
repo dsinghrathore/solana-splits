@@ -6,7 +6,7 @@ url = "https://anchor.projectserum.com"
 
 [provider]
 cluster = "devnet"
-wallet = "/home/maverick/.config/solana/id.json"
+wallet = "/Users/dig/.config/solana/id.json"
 
 [scripts]
 test = "node tests/split.js"
