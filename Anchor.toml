@@ -1,0 +1,12 @@
+[programs.devnet]
+split = "3hDf6fvSXgYKHSDSKvUZriJvUspTqQD5cSG7up61xJxw"
+
+[registry]
+url = "https://anchor.projectserum.com"
+
+[provider]
+cluster = "devnet"
+wallet = "/home/maverick/.config/solana/id.json"
+
+[scripts]
+test = "node tests/split.js"
