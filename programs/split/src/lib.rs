@@ -3,7 +3,7 @@ use anchor_lang::prelude::*;
 use percentage::Percentage;
 use std::collections::HashMap;
 
-declare_id!("3hDf6fvSXgYKHSDSKvUZriJvUspTqQD5cSG7up61xJxw");
+declare_id!("3iAGPRpHf3QrzjQZrwLPTUZkqMw42NC4QnBuNTQVEho9");
 
 #[program]
 pub mod split {
@@ -39,6 +39,7 @@ pub mod split {
         Ok(())
     }
 
+    #[allow(unused_assignments)]
     pub fn send_sol<'a, 'b, 'c, 'info>(
         ctx: Context<'a, 'b, 'c, 'info, SenderContext<'info>>,
         split_id: u64,
