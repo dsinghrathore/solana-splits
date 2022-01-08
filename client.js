@@ -4,7 +4,7 @@
 
 const anchor = require("@project-serum/anchor");
 const { SystemProgram } = anchor.web3;
-
+const idl = require("./idl.json")
 const provider = anchor.Provider.env();
 // Configure the local cluster.
 anchor.setProvider(provider);
@@ -12,9 +12,7 @@ anchor.setProvider(provider);
 async function main() {
   // #region main
   // Read the generated IDL.
-  const idl = JSON.parse(
-    require("fs").readFileSync("./target/idl/split.json", "utf8")
-  );
+ 
 
   const programId = new anchor.web3.PublicKey("3hDf6fvSXgYKHSDSKvUZriJvUspTqQD5cSG7up61xJxw");
   const baseAccount = anchor.web3.Keypair.generate();

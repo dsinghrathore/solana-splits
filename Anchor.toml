@@ -1,12 +1,12 @@
 [programs.devnet]
-split = "3hDf6fvSXgYKHSDSKvUZriJvUspTqQD5cSG7up61xJxw"
+split = "4tzDAD5KLntPhT8t3gjqs85vsT5aguZTNCoeRvKkt5zr"
 
 [registry]
 url = "https://anchor.projectserum.com"
 
 [provider]
 cluster = "devnet"
-wallet = "/Users/dig/.config/solana/id.json"
+wallet = "./solwal/id.json"
 
 [scripts]
 test = "node tests/split.js"

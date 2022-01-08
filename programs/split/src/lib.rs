@@ -3,7 +3,7 @@ use anchor_lang::prelude::*;
 use percentage::Percentage;
 use std::collections::HashMap;
 
-declare_id!("3iAGPRpHf3QrzjQZrwLPTUZkqMw42NC4QnBuNTQVEho9");
+declare_id!("4tzDAD5KLntPhT8t3gjqs85vsT5aguZTNCoeRvKkt5zr");
 
 #[program]
 pub mod split {
@@ -15,16 +15,13 @@ pub mod split {
         Ok(())
     }
 
-    pub fn new_split(
-        ctx: Context<NewSplitContext>,
-        split: HashMap<Pubkey, u64>
-    ) -> ProgramResult {
+    pub fn new_split(ctx: Context<NewSplitContext>, split: Vec<Map>) -> ProgramResult {
         let base_account = &mut ctx.accounts.base_account;
         let mut total_percentage = 0;
         let mut index = 0;
 
         for item in split.iter() {
-            total_percentage = total_percentage + item.1;
+            total_percentage = total_percentage + item.perc;
             index = index + 1;
         }
 
@@ -50,25 +47,24 @@ pub mod split {
         let mut index = 0;
 
         for rc_account in ctx.remaining_accounts.iter() {
-            if split_ref.contains_key(&rc_account.key()) {
-                let split_percentage = Percentage::from(split_ref[&rc_account.key()]);
-                let split_amount = split_percentage.apply_to(amount);
-
-                let ix = anchor_lang::solana_program::system_instruction::transfer(
-                    &msg_sender.key(),
-                    &rc_account.key(),
-                    split_amount,
-                );
-
-                anchor_lang::solana_program::program::invoke(
-                    &ix,
-                    &[
-                        msg_sender.to_account_info(),
-                        ctx.remaining_accounts[index].to_account_info(),
-                    ],
-                );
-
-                index = index + 1;
+            for split_map in split_ref.iter() {
+                if &split_map.pub_key == &rc_account.key() {
+                    let split_percentage = Percentage::from(split_map.perc);
+                    let split_amount = split_percentage.apply_to(amount);
+                    let ix = anchor_lang::solana_program::system_instruction::transfer(
+                        &msg_sender.key(),
+                        &rc_account.key(),
+                        split_amount,
+                    );
+                    anchor_lang::solana_program::program::invoke(
+                        &ix,
+                        &[
+                            msg_sender.to_account_info(),
+                            ctx.remaining_accounts[index].to_account_info(),
+                        ],
+                    );
+                    index = index + 1;
+                }
             }
 
             panic!("account address doesn't exist in splits info");
@@ -78,10 +74,17 @@ pub mod split {
     }
 }
 
+#[state]
+#[derive(Default, Copy)]
+pub struct Map {
+    pub pub_key: Pubkey,
+    pub perc: u64,
+}
+
 #[account]
 pub struct BaseAccount {
     pub splits_count: u64,
-    pub splits: HashMap<u64, HashMap<Pubkey, u64>>
+    pub splits: HashMap<u64, Vec<Map>>,
 }
 
 #[derive(Accounts)]
@@ -92,6 +95,10 @@ pub struct Initialize<'info> {
     pub user: Signer<'info>,
     pub system_program: Program<'info, System>,
 }
+
+// pub struct MapVec{
+//     item: HashMap<u64, std::rc::Rc<Map>>
+// }
 
 #[derive(Accounts)]
 pub struct NewSplitContext<'info> {
