@@ -1,6 +1,7 @@
 use anchor_lang::prelude::Pubkey;
 use anchor_lang::prelude::*;
 use percentage::Percentage;
+use std::collections::BTreeMap;
 use std::collections::HashMap;
 
 declare_id!("4tzDAD5KLntPhT8t3gjqs85vsT5aguZTNCoeRvKkt5zr");
@@ -84,7 +85,7 @@ pub struct Map {
 #[account]
 pub struct BaseAccount {
     pub splits_count: u64,
-    pub splits: HashMap<u64, Vec<Map>>,
+    pub splits: BTreeMap<u64, Vec<Map>>,
 }
 
 #[derive(Accounts)]

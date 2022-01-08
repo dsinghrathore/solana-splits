@@ -14,7 +14,7 @@ async function main() {
   // Read the generated IDL.
  
 
-  const programId = new anchor.web3.PublicKey("3hDf6fvSXgYKHSDSKvUZriJvUspTqQD5cSG7up61xJxw");
+  const programId = new anchor.web3.PublicKey("4tzDAD5KLntPhT8t3gjqs85vsT5aguZTNCoeRvKkt5zr");
   const baseAccount = anchor.web3.Keypair.generate();
   const splitAdmin = anchor.web3.Keypair.generate();
 

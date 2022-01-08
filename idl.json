@@ -46,7 +46,7 @@
                 {
                     "name": "split",
                     "type": {
-                        "defined": "HashMap<Pubkey,u64>"
+                        "defined": "BTreeMap<Pubkey,u64>"
                     }
                 }
             ]
@@ -90,11 +90,14 @@
                     {
                         "name": "splits",
                         "type": {
-                            "defined": "HashMap<u64,HashMap<Pubkey,u64>>"
+                            "defined": "BTreeMap<u64,BTreeMap<Pubkey,u64>>"
                         }
                     }
                 ]
             }
         }
-    ]
+    ],
+    "metadata": {
+        "address": "4tzDAD5KLntPhT8t3gjqs85vsT5aguZTNCoeRvKkt5zr"
+    }
 }
