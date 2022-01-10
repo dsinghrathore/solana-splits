@@ -44,9 +44,15 @@
             ],
             "args": [
                 {
-                    "name": "split",
+                    "name": "splitPerc",
                     "type": {
-                        "defined": "HashMap<Pubkey,u64>"
+                        "vec": "u64"
+                    }
+                },
+                {
+                    "name": "splitKeys",
+                    "type": {
+                        "vec": "publicKey"
                     }
                 }
             ]
@@ -88,13 +94,26 @@
                         "type": "u64"
                     },
                     {
-                        "name": "splits",
+                        "name": "splitsPerc",
                         "type": {
-                            "defined": "HashMap<u64,HashMap<Pubkey,u64>>"
+                            "vec": {
+                                "vec": "u64"
+                            }
+                        }
+                    },
+                    {
+                        "name": "splitsKeys",
+                        "type": {
+                            "vec": {
+                                "vec": "publicKey"
+                            }
                         }
                     }
                 ]
             }
         }
-    ]
+    ],
+    "metadata": {
+        "address": "4tzDAD5KLntPhT8t3gjqs85vsT5aguZTNCoeRvKkt5zr"
+    }
 }

@@ -1,8 +1,7 @@
 use anchor_lang::prelude::Pubkey;
 use anchor_lang::prelude::*;
 use percentage::Percentage;
-use std::any::Any;
-use std::collections::HashMap;
+
 declare_id!("4tzDAD5KLntPhT8t3gjqs85vsT5aguZTNCoeRvKkt5zr");
 
 #[program]

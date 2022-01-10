@@ -32,6 +32,8 @@ async function main() {
     signers: [baseAccount]
   });
   // #endregion main
+  
+  console.log("Done!",program);
 }
 
 console.log("Running client.");
