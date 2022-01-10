@@ -36,26 +36,44 @@ async function main() {
   // #endregion main
   let account = await program.account.baseAccount.fetch(baseAccount.publicKey);
   console.log("🤺 Your account ", account);
-try{
-  let new_split = await program.rpc.newSplit(
-    aone.publicKey,
-   [new anchor.BN(60), new anchor.BN(40)],
-   [aone.publicKey,atwo.publicKey]
-    ,{
-      accounts: {
-        baseAccount: baseAccount.publicKey,
-        user: provider.wallet.publicKey,
-        systemProgram: SystemProgram.programId,
+
+  try {
+    let new_split = await program.rpc.newSplit(
+      aone.publicKey,
+      [new anchor.BN(60), new anchor.BN(40)],
+      [aone.publicKey,atwo.publicKey],
+      {
+        accounts: {
+          baseAccount: baseAccount.publicKey,
+          user: provider.wallet.publicKey,
+          systemProgram: SystemProgram.programId,
+        }
       }
-    });
-  console.log("📝 Your new split", new_split);
+    );
 
-  let account = await program.account.baseAccount.fetch(baseAccount.publicKey);
-  console.log("🤺 split account ", account.splits);
+    console.log("📝 New Split", new_split);
 
-}catch(e){
-  console.log("Error 🟥", e);
-}
+    let base_account = await program.account.baseAccount.fetch(baseAccount.publicKey);
+    console.log("🤺 Splits ", base_account.splits);
+
+    let send_sol_tx = await program.rpc.sendSol(
+      new anchor.BN(0),
+      new anchor.BN(100),
+      {
+        accounts: {
+          baseAccount: baseAccount.publicKey,
+          msgSender: provider.wallet.publicKey,
+          user: provider.wallet.publicKey,
+          systemProgram: SystemProgram.programId
+        }
+      }
+    );
+
+    console.log("📝 Sent Sol", send_sol_tx);
+
+  } catch(e){
+    console.log("Error 🟥", e);
+  }
 
   
   console.log("Done!");
