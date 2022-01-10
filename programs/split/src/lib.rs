@@ -1,9 +1,8 @@
 use anchor_lang::prelude::Pubkey;
 use anchor_lang::prelude::*;
 use percentage::Percentage;
-use std::collections::BTreeMap;
+use std::any::Any;
 use std::collections::HashMap;
-
 declare_id!("4tzDAD5KLntPhT8t3gjqs85vsT5aguZTNCoeRvKkt5zr");
 
 #[program]
@@ -16,13 +15,17 @@ pub mod split {
         Ok(())
     }
 
-    pub fn new_split(ctx: Context<NewSplitContext>, split: BTreeMap<Pubkey, u64>) -> ProgramResult {
+    pub fn new_split(
+        ctx: Context<NewSplitContext>,
+        split_perc: Vec<u64>,
+        split_keys: Vec<Pubkey>,
+    ) -> ProgramResult {
         let base_account = &mut ctx.accounts.base_account;
         let mut total_percentage = 0;
         let mut index = 0;
 
-        for item in split.iter() {
-            total_percentage = total_percentage + item.1;
+        for item in split_perc.iter() {
+            total_percentage = total_percentage + item;
             index = index + 1;
         }
 
@@ -32,7 +35,10 @@ pub mod split {
         );
 
         let new_split_id = base_account.splits_count + 1;
-        base_account.splits.insert(new_split_id, split);
+        // base_account.splits.insert(new_split_id, split);
+        base_account.splits_count = new_split_id;
+        base_account.splits_perc.push(split_perc);
+        base_account.splits_keys.push(split_keys);
 
         Ok(())
     }
@@ -43,13 +49,14 @@ pub mod split {
         split_id: u64,
         amount: u64,
     ) -> ProgramResult {
-        let split_ref = &ctx.accounts.base_account.splits[&split_id];
+        let split_perc = &ctx.accounts.base_account.splits_perc[split_id as usize];
+        let split_keys = &ctx.accounts.base_account.splits_keys[split_id as usize];
         let msg_sender = &mut ctx.accounts.msg_sender;
         let mut index = 0;
 
         for rc_account in ctx.remaining_accounts.iter() {
-            if split_ref.contains_key(&rc_account.key()) {
-                let split_percentage = Percentage::from(split_ref[&rc_account.key()]);
+            if split_keys.contains(&rc_account.key()) {
+                let split_percentage = Percentage::from(split_perc[index]);
                 let split_amount = split_percentage.apply_to(amount);
 
                 let ix = anchor_lang::solana_program::system_instruction::transfer(
@@ -76,17 +83,11 @@ pub mod split {
     }
 }
 
-// #[state]
-// #[derive(Default, Copy)]
-// pub struct Map {
-//     pub pub_key: Pubkey,
-//     pub perc: u64,
-// }
-
 #[account]
 pub struct BaseAccount {
     pub splits_count: u64,
-    pub splits: BTreeMap<u64, BTreeMap<Pubkey, u64>>,
+    pub splits_perc: Vec<Vec<u64>>,
+    pub splits_keys: Vec<Vec<Pubkey>>,
 }
 
 #[derive(Accounts)]
@@ -97,10 +98,6 @@ pub struct Initialize<'info> {
     pub user: Signer<'info>,
     pub system_program: Program<'info, System>,
 }
-
-// pub struct MapVec{
-//     item: HashMap<u64, std::rc::Rc<Map>>
-// }
 
 #[derive(Accounts)]
 pub struct NewSplitContext<'info> {
