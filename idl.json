@@ -44,6 +44,10 @@
             ],
             "args": [
                 {
+                    "name": "splitCreator",
+                    "type": "publicKey"
+                },
+                {
                     "name": "splitPerc",
                     "type": {
                         "vec": "u64"
@@ -90,23 +94,37 @@
                 "kind": "struct",
                 "fields": [
                     {
-                        "name": "splitsCount",
-                        "type": "u64"
-                    },
-                    {
-                        "name": "splitsPerc",
+                        "name": "splits",
                         "type": {
                             "vec": {
-                                "vec": "u64"
+                                "defined": "Split"
                             }
+                        }
+                    }
+                ]
+            }
+        }
+    ],
+    "types": [
+        {
+            "name": "Split",
+            "type": {
+                "kind": "struct",
+                "fields": [
+                    {
+                        "name": "splitsCreator",
+                        "type": "publicKey"
+                    },
+                    {
+                        "name": "splitsPercentage",
+                        "type": {
+                            "vec": "u64"
                         }
                     },
                     {
                         "name": "splitsKeys",
                         "type": {
-                            "vec": {
-                                "vec": "publicKey"
-                            }
+                            "vec": "publicKey"
                         }
                     }
                 ]
