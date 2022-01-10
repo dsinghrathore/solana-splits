@@ -17,12 +17,13 @@ async function main() {
   const programId = new anchor.web3.PublicKey("3hDf6fvSXgYKHSDSKvUZriJvUspTqQD5cSG7up61xJxw");
   const baseAccount = anchor.web3.Keypair.generate();
   const splitAdmin = anchor.web3.Keypair.generate();
-
+  const aone = anchor.web3.Keypair.generate();
+  const atwo = anchor.web3.Keypair.generate();
   // Generate the program client from IDL.
   const program = new anchor.Program(idl, programId, provider);
 
   // Execute the RPC.
-  await program.rpc.initialize({
+  let tx = await program.rpc.initialize({
     accounts: {
       baseAccount: baseAccount.publicKey,
       user: provider.wallet.publicKey,
@@ -31,9 +32,28 @@ async function main() {
     },
     signers: [baseAccount]
   });
+  console.log("📝 Your transaction signature", tx);
   // #endregion main
+  let account = await program.account.baseAccount.fetch(baseAccount.publicKey);
+  console.log("🤺 Your account ", account);
+try{
+  let new_split = await program.rpc.newSplit(
+    
+   [new anchor.BN(60), new anchor.BN(40)],
+   [aone.publicKey,atwo.publicKey]
+    ,{
+      accounts: {
+        baseAccount: baseAccount.publicKey,
+        user: provider.wallet.publicKey,
+        systemProgram: SystemProgram.programId,
+      }
+    });
+  console.log("📝 Your new split", new_split);
+}catch(e){
+  console.log("Error 🟥", e);
+}
   
-  console.log("Done!",program);
+  console.log("Done!");
 }
 
 console.log("Running client.");
