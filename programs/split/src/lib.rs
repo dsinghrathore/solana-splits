@@ -9,13 +9,13 @@ pub mod split {
     use super::*;
     pub fn initialize(ctx: Context<Initialize>) -> ProgramResult {
         let base_account = &mut ctx.accounts.base_account;
-        base_account.splits_count = 0;
 
         Ok(())
     }
 
     pub fn new_split(
         ctx: Context<NewSplitContext>,
+        split_creator: Pubkey,
         split_perc: Vec<u64>,
         split_keys: Vec<Pubkey>,
     ) -> ProgramResult {
@@ -33,11 +33,15 @@ pub mod split {
             "NEW SPLIT: total percentage should be 100"
         );
 
-        let new_split_id = base_account.splits_count + 1;
-        // base_account.splits.insert(new_split_id, split);
-        base_account.splits_count = new_split_id;
-        base_account.splits_perc.push(split_perc);
-        base_account.splits_keys.push(split_keys);
+        // base_account.splits_perc.push(split_perc);
+        // base_account.splits_keys.push(split_keys);
+        let n_split = Split{
+            splits_creator: split_creator,
+            splits_percentage: split_perc,
+            splits_keys: split_keys
+        };
+
+        base_account.splits.push(n_split);
 
         Ok(())
     }
@@ -48,8 +52,11 @@ pub mod split {
         split_id: u64,
         amount: u64,
     ) -> ProgramResult {
-        let split_perc = &ctx.accounts.base_account.splits_perc[split_id as usize];
-        let split_keys = &ctx.accounts.base_account.splits_keys[split_id as usize];
+        // let split_perc = &ctx.accounts.base_account.splits_perc[split_id as usize];
+        // let split_keys = &ctx.accounts.base_account.splits_keys[split_id as usize];
+        let current_split = &ctx.accounts.base_account.splits[split_id as usize];
+        let split_perc = &current_split.splits_percentage;
+        let split_keys = &current_split.splits_keys;
         let msg_sender = &mut ctx.accounts.msg_sender;
         let mut index = 0;
 
@@ -82,11 +89,16 @@ pub mod split {
     }
 }
 
+#[derive(Debug, Clone, AnchorSerialize, AnchorDeserialize)]
+pub struct Split {
+    pub splits_creator: Pubkey,
+    pub splits_percentage: Vec<u64>,
+    pub splits_keys: Vec<Pubkey>
+}
+
 #[account]
 pub struct BaseAccount {
-    pub splits_count: u64,
-    pub splits_perc: Vec<Vec<u64>>,
-    pub splits_keys: Vec<Vec<Pubkey>>,
+    pub splits: Vec<Split>
 }
 
 #[derive(Accounts)]
