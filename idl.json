@@ -11,6 +11,11 @@
                     "isSigner": true
                 },
                 {
+                    "name": "bankAccount",
+                    "isMut": true,
+                    "isSigner": true
+                },
+                {
                     "name": "user",
                     "isMut": true,
                     "isSigner": true
@@ -81,7 +86,7 @@
                 },
                 {
                     "name": "bankAccount",
-                    "isMut": false,
+                    "isMut": true,
                     "isSigner": false
                 }
             ],

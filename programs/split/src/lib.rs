@@ -35,11 +35,11 @@ pub mod split {
 
         // base_account.splits_perc.push(split_perc);
         // base_account.splits_keys.push(split_keys);
-        let n_split = Split{
+        let n_split = Split {
             splits_creator: split_creator,
             splits_percentage: split_perc,
             splits_keys: split_keys,
-            payments: vec!()
+            payments: vec![],
         };
 
         base_account.splits.push(n_split);
@@ -63,9 +63,9 @@ pub mod split {
         let msg_sender = &mut ctx.accounts.msg_sender;
         // let mut index = 0;
 
-        let n_payment = Payment{
+        let n_payment = Payment {
             total_amount: amount,
-            paid_to: vec!()
+            paid_to: vec![],
         };
 
         current_split.payments.push(n_payment);
@@ -82,7 +82,7 @@ pub mod split {
             &[
                 msg_sender.to_account_info(),
                 // ctx.accounts.system_program.to_account_info()
-                ctx.accounts.bank_account.to_account_info()
+                ctx.accounts.bank_account.to_account_info(),
             ],
         );
 
@@ -117,8 +117,8 @@ pub mod split {
 
     pub fn withdraw(
         ctx: Context<WithdrawContext>,
-        split_id: u64, 
-        payment_id: u64
+        split_id: u64,
+        payment_id: u64,
     ) -> ProgramResult {
         let current_split = &mut ctx.accounts.base_account.splits[split_id as usize];
         let current_payment = &mut current_split.payments[payment_id as usize];
@@ -135,7 +135,7 @@ pub mod split {
             &[
                 // ctx.accounts.system_program.to_account_info(),
                 ctx.accounts.bank_account.to_account_info(),
-                ctx.accounts.msg_sender.to_account_info()
+                ctx.accounts.msg_sender.to_account_info(),
             ],
         );
 
@@ -148,24 +148,31 @@ pub struct Split {
     pub splits_creator: Pubkey,
     pub splits_percentage: Vec<u64>,
     pub splits_keys: Vec<Pubkey>,
-    pub payments: Vec<Payment>
+    pub payments: Vec<Payment>,
 }
 
 #[derive(Debug, Clone, AnchorSerialize, AnchorDeserialize)]
 pub struct Payment {
     pub total_amount: u64,
-    pub paid_to: Vec<Pubkey>
+    pub paid_to: Vec<Pubkey>,
 }
 
 #[account]
 pub struct BaseAccount {
-    pub splits: Vec<Split>
+    pub splits: Vec<Split>,
 }
+
+// #[account]
+// pub struct BankAccount {
+//     pub balance: u64,
+// }
 
 #[derive(Accounts)]
 pub struct Initialize<'info> {
     #[account(init, payer = user, space = 9000)]
     pub base_account: Account<'info, BaseAccount>,
+    #[account(init, payer = user, space = 9000)]
+    pub bank_account: Account<'info, BaseAccount>,
     #[account(mut)]
     pub user: Signer<'info>,
     pub system_program: Program<'info, System>,
@@ -185,7 +192,8 @@ pub struct SenderContext<'info> {
     pub base_account: Account<'info, BaseAccount>,
     pub msg_sender: Signer<'info>,
     pub system_program: Program<'info, System>,
-    pub bank_account: Program<'info, System>
+    #[account(mut)]
+    pub bank_account: Account<'info, BaseAccount>,
 }
 
 #[derive(Accounts)]
@@ -194,5 +202,5 @@ pub struct WithdrawContext<'info> {
     pub base_account: Account<'info, BaseAccount>,
     pub msg_sender: Signer<'info>,
     pub system_program: Program<'info, System>,
-    pub bank_account: Program<'info, System>
+    pub bank_account: Account<'info, BaseAccount>,
 }
