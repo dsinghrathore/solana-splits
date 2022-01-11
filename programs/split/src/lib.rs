@@ -72,7 +72,8 @@ pub mod split {
 
         let ix = anchor_lang::solana_program::system_instruction::transfer(
             &msg_sender.key(),
-            &ctx.accounts.system_program.key(),
+            // &ctx.accounts.system_program.key(),
+            &ctx.accounts.bank_account.key(),
             amount,
         );
 
@@ -80,7 +81,8 @@ pub mod split {
             &ix,
             &[
                 msg_sender.to_account_info(),
-                ctx.accounts.system_program.to_account_info()
+                // ctx.accounts.system_program.to_account_info()
+                ctx.accounts.bank_account.to_account_info()
             ],
         );
 
@@ -122,7 +124,8 @@ pub mod split {
         let current_payment = &mut current_split.payments[payment_id as usize];
 
         let ix = anchor_lang::solana_program::system_instruction::transfer(
-            &ctx.accounts.system_program.key(),
+            // &ctx.accounts.system_program.key(),
+            &ctx.accounts.bank_account.key(),
             &ctx.accounts.msg_sender.key(),
             current_payment.total_amount,
         );
@@ -130,7 +133,8 @@ pub mod split {
         anchor_lang::solana_program::program::invoke(
             &ix,
             &[
-                ctx.accounts.system_program.to_account_info(),
+                // ctx.accounts.system_program.to_account_info(),
+                ctx.accounts.bank_account.to_account_info(),
                 ctx.accounts.msg_sender.to_account_info()
             ],
         );
@@ -180,7 +184,8 @@ pub struct SenderContext<'info> {
     #[account(mut)]
     pub base_account: Account<'info, BaseAccount>,
     pub msg_sender: Signer<'info>,
-    pub system_program: Program<'info, System>
+    pub system_program: Program<'info, System>,
+    pub bank_account: Program<'info, System>
 }
 
 #[derive(Accounts)]
@@ -188,5 +193,6 @@ pub struct WithdrawContext<'info> {
     #[account(mut)]
     pub base_account: Account<'info, BaseAccount>,
     pub msg_sender: Signer<'info>,
-    pub system_program: Program<'info, System>
+    pub system_program: Program<'info, System>,
+    pub bank_account: Program<'info, System>
 }
