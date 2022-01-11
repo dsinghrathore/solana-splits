@@ -34,7 +34,6 @@ async function main() {
       user: provider.wallet.publicKey,
       systemProgram: SystemProgram.programId,
       authority: baseAccount.publicKey,
-      bankAccount: baseAccount.publicKey
     },
     signers: [baseAccount]
   });
@@ -86,7 +85,7 @@ async function main() {
           msgSender: provider.wallet.publicKey,
           user: provider.wallet.publicKey,
           systemProgram: SystemProgram.programId,
-          bankAccount: baseAccount.publicKey,
+          bankAccount: bankAccount.publicKey,
         },
       
       }

@@ -171,8 +171,6 @@ pub struct BaseAccount {
 pub struct Initialize<'info> {
     #[account(init, payer = user, space = 9000)]
     pub base_account: Account<'info, BaseAccount>,
-    #[account(init, payer = user, space = 9000)]
-    pub bank_account: Account<'info, BaseAccount>,
     #[account(mut)]
     pub user: Signer<'info>,
     pub system_program: Program<'info, System>,
@@ -193,7 +191,7 @@ pub struct SenderContext<'info> {
     pub msg_sender: Signer<'info>,
     pub system_program: Program<'info, System>,
     #[account(mut)]
-    pub bank_account: Account<'info, BaseAccount>,
+    pub bank_account: AccountInfo<'info>,
 }
 
 #[derive(Accounts)]
