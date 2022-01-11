@@ -38,7 +38,8 @@ pub mod split {
         let n_split = Split{
             splits_creator: split_creator,
             splits_percentage: split_perc,
-            splits_keys: split_keys
+            splits_keys: split_keys,
+            payments: vec!()
         };
 
         base_account.splits.push(n_split);
@@ -51,38 +52,88 @@ pub mod split {
         ctx: Context<'a, 'b, 'c, 'info, SenderContext<'info>>,
         split_id: u64,
         amount: u64,
+        // receivers: &[AccountInfo]
         // receivers: Vec<Account<'info, T>>
     ) -> ProgramResult {
         // let split_perc = &ctx.accounts.base_account.splits_perc[split_id as usize];
         // let split_keys = &ctx.accounts.base_account.splits_keys[split_id as usize];
-        let current_split = &ctx.accounts.base_account.splits[split_id as usize];
-        let split_perc = &current_split.splits_percentage;
-        let split_keys = &current_split.splits_keys;
+        let current_split = &mut ctx.accounts.base_account.splits[split_id as usize];
+        // let split_perc = &current_split.splits_percentage;
+        // let split_keys = &current_split.splits_keys;
         let msg_sender = &mut ctx.accounts.msg_sender;
-        let mut index = 0;
+        // let mut index = 0;
 
-        for rc_account in ctx.remaining_accounts.iter() {
-            if split_keys.contains(&rc_account.key()) {
-                let split_percentage = Percentage::from(split_perc[index]);
-                let split_amount = split_percentage.apply_to(amount);
+        let n_payment = Payment{
+            total_amount: amount,
+            paid_to: vec!()
+        };
 
-                let ix = anchor_lang::solana_program::system_instruction::transfer(
-                    &msg_sender.key(),
-                    &rc_account.key(),
-                    split_amount,
-                );
+        current_split.payments.push(n_payment);
 
-                anchor_lang::solana_program::program::invoke(
-                    &ix,
-                    &[
-                        msg_sender.to_account_info(),
-                        ctx.remaining_accounts[index].to_account_info(),
-                    ],
-                );
+        let ix = anchor_lang::solana_program::system_instruction::transfer(
+            &msg_sender.key(),
+            &ctx.accounts.system_program.key(),
+            amount,
+        );
 
-                index = index + 1;
-            }
-        }
+        anchor_lang::solana_program::program::invoke(
+            &ix,
+            &[
+                msg_sender.to_account_info(),
+                ctx.accounts.system_program.to_account_info()
+            ],
+        );
+
+        // for rc_account in ctx.remaining_accounts.iter() {
+        // for rc_account in receivers.iter() {
+        //     if split_keys.contains(&rc_account.key()) {
+        //         if rc_account.key() != msg_sender.key() {
+        //             let split_percentage = Percentage::from(split_perc[index]);
+        //             let split_amount = split_percentage.apply_to(amount);
+
+        //             let ix = anchor_lang::solana_program::system_instruction::transfer(
+        //                 &msg_sender.key(),
+        //                 &rc_account.key(),
+        //                 split_amount,
+        //             );
+
+        //             anchor_lang::solana_program::program::invoke(
+        //                 &ix,
+        //                 &[
+        //                     msg_sender.to_account_info(),
+        //                     receivers[index].to_account_info(),
+        //                 ],
+        //             );
+        //         }
+
+        //         index = index + 1;
+        //     }
+        // }
+
+        Ok(())
+    }
+
+    pub fn withdraw(
+        ctx: Context<WithdrawContext>,
+        split_id: u64, 
+        payment_id: u64
+    ) -> ProgramResult {
+        let current_split = &mut ctx.accounts.base_account.splits[split_id as usize];
+        let current_payment = &mut current_split.payments[payment_id as usize];
+
+        let ix = anchor_lang::solana_program::system_instruction::transfer(
+            &ctx.accounts.system_program.key(),
+            &ctx.accounts.msg_sender.key(),
+            current_payment.total_amount,
+        );
+
+        anchor_lang::solana_program::program::invoke(
+            &ix,
+            &[
+                ctx.accounts.system_program.to_account_info(),
+                ctx.accounts.msg_sender.to_account_info()
+            ],
+        );
 
         Ok(())
     }
@@ -92,7 +143,14 @@ pub mod split {
 pub struct Split {
     pub splits_creator: Pubkey,
     pub splits_percentage: Vec<u64>,
-    pub splits_keys: Vec<Pubkey>
+    pub splits_keys: Vec<Pubkey>,
+    pub payments: Vec<Payment>
+}
+
+#[derive(Debug, Clone, AnchorSerialize, AnchorDeserialize)]
+pub struct Payment {
+    pub total_amount: u64,
+    pub paid_to: Vec<Pubkey>
 }
 
 #[account]
@@ -121,5 +179,14 @@ pub struct NewSplitContext<'info> {
 pub struct SenderContext<'info> {
     #[account(mut)]
     pub base_account: Account<'info, BaseAccount>,
-    pub msg_sender: Signer<'info>
+    pub msg_sender: Signer<'info>,
+    pub system_program: Program<'info, System>
+}
+
+#[derive(Accounts)]
+pub struct WithdrawContext<'info> {
+    #[account(mut)]
+    pub base_account: Account<'info, BaseAccount>,
+    pub msg_sender: Signer<'info>,
+    pub system_program: Program<'info, System>
 }
