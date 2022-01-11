@@ -85,7 +85,10 @@ async function main() {
           user: provider.wallet.publicKey,
           systemProgram: SystemProgram.programId
         },
-        remainingAccounts: []
+        remainingAccounts: [
+          { pubkey: aone.publicKey, isWritable: false, isSigner: false },
+          { pubkey: atwo.publicKey, isWritable: false, isSigner: false }
+        ]
       }
     );
 

@@ -51,6 +51,7 @@ pub mod split {
         ctx: Context<'a, 'b, 'c, 'info, SenderContext<'info>>,
         split_id: u64,
         amount: u64,
+        // receivers: Vec<Account<'info, T>>
     ) -> ProgramResult {
         // let split_perc = &ctx.accounts.base_account.splits_perc[split_id as usize];
         // let split_keys = &ctx.accounts.base_account.splits_keys[split_id as usize];
@@ -81,8 +82,6 @@ pub mod split {
 
                 index = index + 1;
             }
-
-            panic!("account address doesn't exist in splits info");
         }
 
         Ok(())
@@ -122,5 +121,5 @@ pub struct NewSplitContext<'info> {
 pub struct SenderContext<'info> {
     #[account(mut)]
     pub base_account: Account<'info, BaseAccount>,
-    pub msg_sender: Signer<'info>,
+    pub msg_sender: Signer<'info>
 }
