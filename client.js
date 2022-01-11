@@ -16,6 +16,7 @@ async function main() {
   const programId = new anchor.web3.PublicKey("4tzDAD5KLntPhT8t3gjqs85vsT5aguZTNCoeRvKkt5zr");
   const baseAccount = anchor.web3.Keypair.generate();
   const splitAdmin = anchor.web3.Keypair.generate();
+  const bankAccount = anchor.web3.Keypair.generate();
   const aone = anchor.web3.Keypair.generate();
   const atwo = anchor.web3.Keypair.generate();
   // const aone = new anchor.web3.PublicKey("4m1eWNndyhE8eJyQcde8MYMV3tzP4wS5xsARZQTHAKpo");
@@ -83,12 +84,10 @@ async function main() {
           baseAccount: baseAccount.publicKey,
           msgSender: provider.wallet.publicKey,
           user: provider.wallet.publicKey,
-          systemProgram: SystemProgram.programId
+          systemProgram: SystemProgram.programId,
+          bankAccount: bankAccount.publicKey,
         },
-        remainingAccounts: [
-          { pubkey: aone.publicKey, isWritable: false, isSigner: false },
-          { pubkey: atwo.publicKey, isWritable: false, isSigner: false }
-        ]
+      
       }
     );
 
