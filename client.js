@@ -42,12 +42,12 @@ async function main() {
   // #endregion main
   let account = await program.account.baseAccount.fetch(baseAccount.publicKey);
   console.log("🤺 Your account ", account);
-
+console.log("Pks", aone.publicKey.toString(), atwo.publicKey.toString(), athree.publicKey.toString());
   try {
     let new_split_1 = await program.rpc.newSplit(
       aone.publicKey,
       [new anchor.BN(60), new anchor.BN(40)],
-      [aone.publicKey, atwo.publicKey],
+      [provider.wallet.publicKey, atwo.publicKey],
       {
         accounts: {
           baseAccount: baseAccount.publicKey,
@@ -78,12 +78,11 @@ async function main() {
 
     let send_sol_tx = await program.rpc.sendSol(
       new anchor.BN(0),
-      new anchor.BN(2),
+      new anchor.BN(1000),
       {
         accounts: {
           baseAccount: baseAccount.publicKey,
           msgSender: provider.wallet.publicKey,
-          user: provider.wallet.publicKey,
           systemProgram: SystemProgram.programId,
           bankAccount: bankAccount.publicKey,
         },
@@ -95,6 +94,27 @@ async function main() {
   } catch(e){
     console.log("Error 🟥", e);
   }
+
+
+try {
+  let withdraw_tx = await program.rpc.withdraw( 
+    new anchor.BN(0),
+    new anchor.BN(0),
+    {
+      accounts: {
+        baseAccount: baseAccount.publicKey,
+        msgSender: provider.wallet.publicKey,
+        systemProgram: SystemProgram.programId,
+        bankAccount: bankAccount.publicKey,
+      },
+    }
+  )
+  console.log("📝 withdrew Sol", withdraw_tx);
+  console.log("🚀🚀🚀 LFG!!!! ");
+} catch (error) {
+  console.log("Error 🟥", error);
+}
+
 
   console.log("Done!");
 }

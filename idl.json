@@ -116,8 +116,8 @@
                 },
                 {
                     "name": "bankAccount",
-                    "isMut": false,
-                    "isSigner": false
+                    "isMut": true,
+                    "isSigner": true
                 }
             ],
             "args": [

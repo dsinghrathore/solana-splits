@@ -125,20 +125,21 @@ pub mod split {
         let split_percentages = &current_split.splits_percentage;
         let index = &mut 0;
 
-        if !current_payment.paid_to.contains(&ctx.accounts.msg_sender.key()) {
+        if !current_payment
+            .paid_to
+            .contains(&ctx.accounts.msg_sender.key())
+        {
             for c_key in current_split.splits_keys.iter() {
                 if c_key == &ctx.accounts.msg_sender.key() {
                     let split_percentage = split_percentages[*index as usize];
                     let n_split_percentage = Percentage::from(split_percentage);
                     let split_amount = n_split_percentage.apply_to(current_payment.total_amount);
-    
                     let ix = anchor_lang::solana_program::system_instruction::transfer(
                         // &ctx.accounts.system_program.key(),
                         &ctx.accounts.bank_account.key(),
                         &ctx.accounts.msg_sender.key(),
                         split_amount,
                     );
-            
                     anchor_lang::solana_program::program::invoke(
                         &ix,
                         &[
@@ -148,7 +149,7 @@ pub mod split {
                         ],
                     );
                 }
-            }    
+            }
         }
 
         Ok(())
@@ -212,5 +213,6 @@ pub struct WithdrawContext<'info> {
     pub base_account: Account<'info, BaseAccount>,
     pub msg_sender: Signer<'info>,
     pub system_program: Program<'info, System>,
-    pub bank_account: AccountInfo<'info>,
+    #[account(mut)]
+    pub bank_account: Signer<'info>,
 }
