@@ -122,22 +122,34 @@ pub mod split {
     ) -> ProgramResult {
         let current_split = &mut ctx.accounts.base_account.splits[split_id as usize];
         let current_payment = &mut current_split.payments[payment_id as usize];
+        let split_percentages = &current_split.splits_percentage;
+        let index = &mut 0;
 
-        let ix = anchor_lang::solana_program::system_instruction::transfer(
-            // &ctx.accounts.system_program.key(),
-            &ctx.accounts.bank_account.key(),
-            &ctx.accounts.msg_sender.key(),
-            current_payment.total_amount,
-        );
-
-        anchor_lang::solana_program::program::invoke(
-            &ix,
-            &[
-                // ctx.accounts.system_program.to_account_info(),
-                ctx.accounts.bank_account.to_account_info(),
-                ctx.accounts.msg_sender.to_account_info(),
-            ],
-        );
+        if !current_payment.paid_to.contains(&ctx.accounts.msg_sender.key()) {
+            for c_key in current_split.splits_keys.iter() {
+                if c_key == &ctx.accounts.msg_sender.key() {
+                    let split_percentage = split_percentages[*index as usize];
+                    let n_split_percentage = Percentage::from(split_percentage);
+                    let split_amount = n_split_percentage.apply_to(current_payment.total_amount);
+    
+                    let ix = anchor_lang::solana_program::system_instruction::transfer(
+                        // &ctx.accounts.system_program.key(),
+                        &ctx.accounts.bank_account.key(),
+                        &ctx.accounts.msg_sender.key(),
+                        split_amount,
+                    );
+            
+                    anchor_lang::solana_program::program::invoke(
+                        &ix,
+                        &[
+                            // ctx.accounts.system_program.to_account_info(),
+                            ctx.accounts.bank_account.to_account_info(),
+                            ctx.accounts.msg_sender.to_account_info(),
+                        ],
+                    );
+                }
+            }    
+        }
 
         Ok(())
     }
@@ -200,5 +212,5 @@ pub struct WithdrawContext<'info> {
     pub base_account: Account<'info, BaseAccount>,
     pub msg_sender: Signer<'info>,
     pub system_program: Program<'info, System>,
-    pub bank_account: Account<'info, BaseAccount>,
+    pub bank_account: AccountInfo<'info>,
 }
