@@ -89,12 +89,10 @@ pub mod split {
             amount,
         );
 
-        anchor_lang::solana_program::program::invoke(
+        anchor_lang::solana_program::program::invoke_signed(
             &ix,
-            &[
-                msg_sender.to_account_info(),
-                //idhar kya?
-            ],
+            &[msg_sender.to_account_info()],
+            &[&[msg_sender.to_account_info().key.as_ref(), &[nonce]]],
         );
 
         // for rc_account in ctx.remaining_accounts.iter() {
