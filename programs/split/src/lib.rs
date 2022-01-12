@@ -1,6 +1,8 @@
 use anchor_lang::prelude::Pubkey;
 use anchor_lang::prelude::*;
 use percentage::Percentage;
+use std::collections::hash_map::DefaultHasher;
+use std::hash::{Hash, Hasher};
 
 declare_id!("4tzDAD5KLntPhT8t3gjqs85vsT5aguZTNCoeRvKkt5zr");
 
@@ -15,9 +17,9 @@ pub mod split {
 
     pub fn new_split(
         ctx: Context<NewSplitContext>,
-        split_creator: Pubkey,
         split_perc: Vec<u64>,
         split_keys: Vec<Pubkey>,
+        // nonce: u8
     ) -> ProgramResult {
         let base_account = &mut ctx.accounts.base_account;
         let mut total_percentage = 0;
@@ -33,10 +35,12 @@ pub mod split {
             "NEW SPLIT: total percentage should be 100"
         );
 
+        // CREATING A PDA
+
         // base_account.splits_perc.push(split_perc);
         // base_account.splits_keys.push(split_keys);
         let n_split = Split {
-            splits_creator: split_creator,
+            splits_creator: ctx.accounts.user.key(),
             splits_percentage: split_perc,
             splits_keys: split_keys,
             payments: vec![],
@@ -52,6 +56,7 @@ pub mod split {
         ctx: Context<'a, 'b, 'c, 'info, SenderContext<'info>>,
         split_id: u64,
         amount: u64,
+        nonce: u8
         // receivers: &[AccountInfo]
         // receivers: Vec<Account<'info, T>>
     ) -> ProgramResult {
@@ -60,8 +65,18 @@ pub mod split {
         let current_split = &mut ctx.accounts.base_account.splits[split_id as usize];
         // let split_perc = &current_split.splits_percentage;
         // let split_keys = &current_split.splits_keys;
-        let msg_sender = &mut ctx.accounts.msg_sender;
+        let msg_sender = &mut ctx.accounts.user;
         // let mut index = 0;
+
+        let bank_pda = Pubkey::create_program_address(
+            &[
+                msg_sender.to_account_info().key.as_ref(),
+                &[nonce],
+            ],
+            ctx.program_id,
+        );
+        
+        // TRANSFER MONEY TO PDA AND STORE IT IN STRUCT
 
         let n_payment = Payment {
             total_amount: amount,
@@ -73,7 +88,7 @@ pub mod split {
         let ix = anchor_lang::solana_program::system_instruction::transfer(
             &msg_sender.key(),
             // &ctx.accounts.system_program.key(),
-            &ctx.accounts.bank_account.key(),
+            bank_pda,
             amount,
         );
 
@@ -154,14 +169,40 @@ pub mod split {
 
         Ok(())
     }
+
+    // fn calculate_hash<T: Hash>(t: &T) -> u64 {
+    //     let mut s = DefaultHasher::new();
+    //     t.hash(&mut s);
+    //     s.finish()
+    // }
+
+    // pub fn create_with_seed(
+    //     base: &Pubkey,
+    //     seed: &str,
+    //     program_id: &Pubkey,
+    // ) -> Result<Pubkey> {
+    //     if seed.len() > 60 {
+    //         return Err(SystemError::MaxSeedLengthExceeded);
+    //     }
+    
+    //     Ok(Pubkey::new(
+    //         hashv(&[base.as_ref(), seed.as_ref(), program_id.as_ref()]).as_ref(),
+    //     ))
+    // }
 }
+
+// TODO:
+// 1. Create PDA
+// 2. Send SOL to it
+// 3. Store it in the struct
+// 4. Transfer SOL from it
 
 #[derive(Debug, Clone, AnchorSerialize, AnchorDeserialize)]
 pub struct Split {
     pub splits_creator: Pubkey,
     pub splits_percentage: Vec<u64>,
     pub splits_keys: Vec<Pubkey>,
-    pub payments: Vec<Payment>,
+    pub payments: Vec<Payment>
 }
 
 #[derive(Debug, Clone, AnchorSerialize, AnchorDeserialize)]
@@ -201,10 +242,10 @@ pub struct NewSplitContext<'info> {
 pub struct SenderContext<'info> {
     #[account(mut)]
     pub base_account: Account<'info, BaseAccount>,
-    pub msg_sender: Signer<'info>,
+    pub user: Signer<'info>,
     pub system_program: Program<'info, System>,
-    #[account(mut)]
-    pub bank_account: AccountInfo<'info>,
+    // #[account(mut)]
+    // pub bank_account: AccountInfo<'info>
 }
 
 #[derive(Accounts)]
@@ -214,5 +255,5 @@ pub struct WithdrawContext<'info> {
     pub msg_sender: Signer<'info>,
     pub system_program: Program<'info, System>,
     #[account(mut)]
-    pub bank_account: Signer<'info>,
+    pub bank_account: AccountInfo<'info>,
 }
