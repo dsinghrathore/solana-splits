@@ -3,7 +3,10 @@ use anchor_lang::prelude::*;
 use percentage::Percentage;
 use std::collections::hash_map::DefaultHasher;
 use std::hash::{Hash, Hasher};
-
+#[derive(Debug)]
+enum PDA {
+    Pubkey,
+}
 declare_id!("4tzDAD5KLntPhT8t3gjqs85vsT5aguZTNCoeRvKkt5zr");
 
 #[program]
@@ -56,9 +59,8 @@ pub mod split {
         ctx: Context<'a, 'b, 'c, 'info, SenderContext<'info>>,
         split_id: u64,
         amount: u64,
-        nonce: u8
-        // receivers: &[AccountInfo]
-        // receivers: Vec<Account<'info, T>>
+        nonce: u8, // receivers: &[AccountInfo]
+                   // receivers: Vec<Account<'info, T>>
     ) -> ProgramResult {
         // let split_perc = &ctx.accounts.base_account.splits_perc[split_id as usize];
         // let split_keys = &ctx.accounts.base_account.splits_keys[split_id as usize];
@@ -67,17 +69,12 @@ pub mod split {
         // let split_keys = &current_split.splits_keys;
         let msg_sender = &mut ctx.accounts.user;
         // let mut index = 0;
-
         let bank_pda = Pubkey::create_program_address(
-            &[
-                msg_sender.to_account_info().key.as_ref(),
-                &[nonce],
-            ],
+            &[msg_sender.to_account_info().key.as_ref(), &[nonce]],
             ctx.program_id,
         );
-        
+        let bank_res = bank_pda.unwrap_or_default();
         // TRANSFER MONEY TO PDA AND STORE IT IN STRUCT
-
         let n_payment = Payment {
             total_amount: amount,
             paid_to: vec![],
@@ -88,7 +85,7 @@ pub mod split {
         let ix = anchor_lang::solana_program::system_instruction::transfer(
             &msg_sender.key(),
             // &ctx.accounts.system_program.key(),
-            bank_pda,
+            &bank_res,
             amount,
         );
 
@@ -96,8 +93,7 @@ pub mod split {
             &ix,
             &[
                 msg_sender.to_account_info(),
-                // ctx.accounts.system_program.to_account_info()
-                ctx.accounts.bank_account.to_account_info(),
+                //idhar kya?
             ],
         );
 
@@ -184,7 +180,6 @@ pub mod split {
     //     if seed.len() > 60 {
     //         return Err(SystemError::MaxSeedLengthExceeded);
     //     }
-    
     //     Ok(Pubkey::new(
     //         hashv(&[base.as_ref(), seed.as_ref(), program_id.as_ref()]).as_ref(),
     //     ))
@@ -202,7 +197,7 @@ pub struct Split {
     pub splits_creator: Pubkey,
     pub splits_percentage: Vec<u64>,
     pub splits_keys: Vec<Pubkey>,
-    pub payments: Vec<Payment>
+    pub payments: Vec<Payment>,
 }
 
 #[derive(Debug, Clone, AnchorSerialize, AnchorDeserialize)]
@@ -236,6 +231,7 @@ pub struct NewSplitContext<'info> {
     pub base_account: Account<'info, BaseAccount>,
     pub user: Signer<'info>,
     pub system_program: Program<'info, System>,
+    pub pda_account: AccountInfo<'info>,
 }
 
 #[derive(Accounts)]
