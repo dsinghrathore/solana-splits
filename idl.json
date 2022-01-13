@@ -44,10 +44,6 @@
             ],
             "args": [
                 {
-                    "name": "splitCreator",
-                    "type": "publicKey"
-                },
-                {
                     "name": "splitPerc",
                     "type": {
                         "vec": "u64"
@@ -70,7 +66,7 @@
                     "isSigner": false
                 },
                 {
-                    "name": "msgSender",
+                    "name": "user",
                     "isMut": false,
                     "isSigner": true
                 },
@@ -80,7 +76,7 @@
                     "isSigner": false
                 },
                 {
-                    "name": "bankAccount",
+                    "name": "pdaAccount",
                     "isMut": true,
                     "isSigner": false
                 }
@@ -115,9 +111,14 @@
                     "isSigner": false
                 },
                 {
-                    "name": "bankAccount",
+                    "name": "pdaAccount",
                     "isMut": true,
-                    "isSigner": true
+                    "isSigner": false
+                },
+                {
+                    "name": "receiver",
+                    "isMut": false,
+                    "isSigner": false
                 }
             ],
             "args": [
@@ -197,6 +198,17 @@
                         "type": {
                             "vec": "publicKey"
                         }
+                    }
+                ]
+            }
+        },
+        {
+            "name": "PDA",
+            "type": {
+                "kind": "enum",
+                "variants": [
+                    {
+                        "name": "Pubkey"
                     }
                 ]
             }
