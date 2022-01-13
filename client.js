@@ -77,25 +77,37 @@ async function main() {
     let base_account_info = await program.account.baseAccount.fetch(baseAccount.publicKey);
     expect(base_account_info.splits.length).is.equal(2);
 
-    // CREATE A PDA
-    let pda = await PublicKey.createProgramAddress([Buffer.from("test")], programId);
-    console.log(pda.toBase58());
+    // GET A PDA
+    let [pda, bump] = await anchor.web3.PublicKey.findProgramAddress([Buffer.from("test")], programId);
+    console.log(`bump: ${bump}, pubkey: ${pda.toBase58()}`);
 
-    // let send_sol_tx = await program.rpc.sendSol(
-    //   new anchor.BN(0),
-    //   new anchor.BN(1000),
-    //   {
-    //     accounts: {
-    //       baseAccount: baseAccount.publicKey,
-    //       msgSender: provider.wallet.publicKey,
-    //       systemProgram: SystemProgram.programId,
-    //       bankAccount: bankAccount.publicKey,
-    //     },
-      
-    //   }
-    // );
+    let send_sol_tx = await program.rpc.sendSol(
+      new anchor.BN(0),
+      new anchor.BN(1000),
+      {
+        accounts: {
+          baseAccount: baseAccount.publicKey,
+          msgSender: provider.wallet.publicKey,
+          systemProgram: SystemProgram.programId,
+          pda_account: pda
+        },
+      }
+    );
 
     console.log("📝 Sent Sol", send_sol_tx);
+
+    let send_sol_tx = await program.rpc.sendSol(
+      new anchor.BN(0),
+      new anchor.BN(0),
+      {
+        accounts: {
+          baseAccount: baseAccount.publicKey,
+          msgSender: provider.wallet.publicKey,
+          systemProgram: SystemProgram.programId,
+          pda_account: pda
+        },
+      }
+    );
   } catch(e){
     console.log("Error 🟥", e);
   }

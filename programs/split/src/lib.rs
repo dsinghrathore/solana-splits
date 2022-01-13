@@ -1,9 +1,6 @@
 use anchor_lang::prelude::Pubkey;
 use anchor_lang::prelude::*;
 use percentage::Percentage;
-use std::collections::hash_map::DefaultHasher;
-use std::hash::{Hash, Hasher};
-// use solana_sdk::signature::{Keypair, Signer};
 use anchor_lang::prelude::{Key, Signer};
 
 #[derive(Debug)]
@@ -16,6 +13,8 @@ declare_id!("4tzDAD5KLntPhT8t3gjqs85vsT5aguZTNCoeRvKkt5zr");
 #[program]
 pub mod split {
     use super::*;
+
+    #[allow(unused_variables)]
     pub fn initialize(ctx: Context<Initialize>) -> ProgramResult {
         let base_account = &mut ctx.accounts.base_account;
 
@@ -63,7 +62,7 @@ pub mod split {
         ctx: Context<'a, 'b, 'c, 'info, SenderContext<'info>>,
         split_id: u64,
         amount: u64,
-        nonce: u8, // receivers: &[AccountInfo]
+        // nonce: u8
                    // receivers: Vec<Account<'info, T>>
     ) -> ProgramResult {
         // let split_perc = &ctx.accounts.base_account.splits_perc[split_id as usize];
@@ -80,27 +79,26 @@ pub mod split {
         // );
         // let bank_res = bank_pda.unwrap_or_default();
         // TRANSFER MONEY TO PDA AND STORE IT IN STRUCT
-        // let n_payment = Payment {
-        //     total_amount: amount,
-        //     paid_to: vec![],
-        // };
+        let n_payment = Payment {
+            total_amount: amount,
+            paid_to: vec![],
+        };
 
-        // current_split.payments.push(n_payment);
+        let ix = anchor_lang::solana_program::system_instruction::transfer(
+            &msg_sender.key(),
+            &ctx.accounts.pda_account.key(),
+            amount,
+        );
 
-        // let ix = anchor_lang::solana_program::system_instruction::transfer(
-        //     &msg_sender.key(),
-        //     &ctx.accounts.system_program.key(),
-        //     &bank_res,
-        //     amount,
-        // );
+        anchor_lang::solana_program::program::invoke(
+            &ix,
+            &[
+                msg_sender.to_account_info(),
+                ctx.accounts.pda_account.to_account_info()
+            ],
+        )?;
 
-        // anchor_lang::solana_program::program::invoke(
-        //     &ix,
-        //     &[
-        //         msg_sender.to_account_info(),
-        //         bank_res
-        //     ],
-        // );
+        current_split.payments.push(n_payment);
 
         // for rc_account in ctx.remaining_accounts.iter() {
         // for rc_account in receivers.iter() {
@@ -151,19 +149,22 @@ pub mod split {
                     let n_split_percentage = Percentage::from(split_percentage);
                     let split_amount = n_split_percentage.apply_to(current_payment.total_amount);
                     let ix = anchor_lang::solana_program::system_instruction::transfer(
-                        // &ctx.accounts.system_program.key(),
-                        &ctx.accounts.bank_account.key(),
-                        &ctx.accounts.msg_sender.key(),
+                        &ctx.accounts.pda_account.key(),
+                        &ctx.accounts.receiver.key(),
                         split_amount,
                     );
-                    anchor_lang::solana_program::program::invoke(
+
+                    anchor_lang::solana_program::program::invoke_signed(
                         &ix,
                         &[
-                            // ctx.accounts.system_program.to_account_info(),
-                            ctx.accounts.bank_account.to_account_info(),
-                            ctx.accounts.msg_sender.to_account_info(),
+                            ctx.accounts.pda_account.to_account_info(),
+                            ctx.accounts.receiver.to_account_info(),
+                            ctx.accounts.system_program.to_account_info()
                         ],
-                    );
+                        &[&[b"test", &[254]]]
+                    )?;
+
+                    current_payment.paid_to.push(ctx.accounts.receiver.key());
                 }
             }
         }
@@ -235,8 +236,7 @@ pub struct NewSplitContext<'info> {
     #[account(mut)]
     pub base_account: Account<'info, BaseAccount>,
     pub user: Signer<'info>,
-    pub system_program: Program<'info, System>,
-    pub pda_account: AccountInfo<'info>,
+    pub system_program: Program<'info, System>
 }
 
 #[derive(Accounts)]
@@ -245,8 +245,8 @@ pub struct SenderContext<'info> {
     pub base_account: Account<'info, BaseAccount>,
     pub user: Signer<'info>,
     pub system_program: Program<'info, System>,
-    // #[account(mut)]
-    // pub bank_account: AccountInfo<'info>
+    #[account(mut)]
+    pub pda_account: SystemAccount<'info>
 }
 
 #[derive(Accounts)]
@@ -256,5 +256,6 @@ pub struct WithdrawContext<'info> {
     pub msg_sender: Signer<'info>,
     pub system_program: Program<'info, System>,
     #[account(mut)]
-    pub bank_account: AccountInfo<'info>,
+    pub pda_account: SystemAccount<'info>,
+    pub receiver: AccountInfo<'info>
 }
