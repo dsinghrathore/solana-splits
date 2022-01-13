@@ -148,6 +148,7 @@ pub mod split {
                     let split_percentage = split_percentages[*index as usize];
                     let n_split_percentage = Percentage::from(split_percentage);
                     let split_amount = n_split_percentage.apply_to(current_payment.total_amount);
+
                     let ix = anchor_lang::solana_program::system_instruction::transfer(
                         &ctx.accounts.pda_account.key(),
                         &ctx.accounts.receiver.key(),
