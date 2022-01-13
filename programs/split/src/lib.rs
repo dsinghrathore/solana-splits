@@ -3,10 +3,14 @@ use anchor_lang::prelude::*;
 use percentage::Percentage;
 use std::collections::hash_map::DefaultHasher;
 use std::hash::{Hash, Hasher};
+// use solana_sdk::signature::{Keypair, Signer};
+use anchor_lang::prelude::{Key, Signer};
+
 #[derive(Debug)]
 enum PDA {
     Pubkey,
 }
+
 declare_id!("4tzDAD5KLntPhT8t3gjqs85vsT5aguZTNCoeRvKkt5zr");
 
 #[program]
@@ -69,33 +73,34 @@ pub mod split {
         // let split_keys = &current_split.splits_keys;
         let msg_sender = &mut ctx.accounts.user;
         // let mut index = 0;
-        let bank_pda = Pubkey::create_program_address(
-            &[msg_sender.to_account_info().key.as_ref(), &[nonce]],
-            ctx.program_id,
-        );
-        let bank_res = bank_pda.unwrap_or_default();
+
+        // let bank_pda = Pubkey::create_program_address(
+        //     &[msg_sender.to_account_info().key.as_ref(), &[nonce]],
+        //     ctx.program_id,
+        // );
+        // let bank_res = bank_pda.unwrap_or_default();
         // TRANSFER MONEY TO PDA AND STORE IT IN STRUCT
-        let n_payment = Payment {
-            total_amount: amount,
-            paid_to: vec![],
-        };
+        // let n_payment = Payment {
+        //     total_amount: amount,
+        //     paid_to: vec![],
+        // };
 
-        current_split.payments.push(n_payment);
+        // current_split.payments.push(n_payment);
 
-        let ix = anchor_lang::solana_program::system_instruction::transfer(
-            &msg_sender.key(),
-            // &ctx.accounts.system_program.key(),
-            &bank_res,
-            amount,
-        );
+        // let ix = anchor_lang::solana_program::system_instruction::transfer(
+        //     &msg_sender.key(),
+        //     &ctx.accounts.system_program.key(),
+        //     &bank_res,
+        //     amount,
+        // );
 
-        anchor_lang::solana_program::program::invoke(
-            &ix,
-            &[
-                msg_sender.to_account_info(),
-                //idhar kya?
-            ],
-        );
+        // anchor_lang::solana_program::program::invoke(
+        //     &ix,
+        //     &[
+        //         msg_sender.to_account_info(),
+        //         bank_res
+        //     ],
+        // );
 
         // for rc_account in ctx.remaining_accounts.iter() {
         // for rc_account in receivers.iter() {

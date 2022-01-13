@@ -42,7 +42,8 @@ async function main() {
   // #endregion main
   let account = await program.account.baseAccount.fetch(baseAccount.publicKey);
   console.log("🤺 Your account ", account);
-console.log("Pks", aone.publicKey.toString(), atwo.publicKey.toString(), athree.publicKey.toString());
+  console.log("Pks", aone.publicKey.toString(), atwo.publicKey.toString(), athree.publicKey.toString());
+
   try {
     let new_split_1 = await program.rpc.newSplit(
       aone.publicKey,
@@ -76,19 +77,23 @@ console.log("Pks", aone.publicKey.toString(), atwo.publicKey.toString(), athree.
     let base_account_info = await program.account.baseAccount.fetch(baseAccount.publicKey);
     expect(base_account_info.splits.length).is.equal(2);
 
-    let send_sol_tx = await program.rpc.sendSol(
-      new anchor.BN(0),
-      new anchor.BN(1000),
-      {
-        accounts: {
-          baseAccount: baseAccount.publicKey,
-          msgSender: provider.wallet.publicKey,
-          systemProgram: SystemProgram.programId,
-          bankAccount: bankAccount.publicKey,
-        },
+    // CREATE A PDA
+    let pda = await PublicKey.createProgramAddress([Buffer.from("test")], programId);
+    console.log(pda.toBase58());
+
+    // let send_sol_tx = await program.rpc.sendSol(
+    //   new anchor.BN(0),
+    //   new anchor.BN(1000),
+    //   {
+    //     accounts: {
+    //       baseAccount: baseAccount.publicKey,
+    //       msgSender: provider.wallet.publicKey,
+    //       systemProgram: SystemProgram.programId,
+    //       bankAccount: bankAccount.publicKey,
+    //     },
       
-      }
-    );
+    //   }
+    // );
 
     console.log("📝 Sent Sol", send_sol_tx);
   } catch(e){
@@ -121,3 +126,10 @@ try {
 
 console.log("Running client.");
 main().then(() => console.log("Success"));
+
+// USING PDAs
+// 1. Create a PDA for new Split
+// 2. Send SOL to the PDA 
+// 3. Use the PDA as signer to access withdraw fn
+
+// ^ scratch that
