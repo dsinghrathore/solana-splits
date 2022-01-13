@@ -117,7 +117,7 @@
                 },
                 {
                     "name": "receiver",
-                    "isMut": false,
+                    "isMut": true,
                     "isSigner": false
                 }
             ],

@@ -1,7 +1,7 @@
 use anchor_lang::prelude::Pubkey;
 use anchor_lang::prelude::*;
-use percentage::Percentage;
 use anchor_lang::prelude::{Key, Signer};
+use percentage::Percentage;
 
 #[derive(Debug)]
 enum PDA {
@@ -56,7 +56,7 @@ pub mod split {
     pub fn send_sol<'a, 'b, 'c, 'info>(
         ctx: Context<'a, 'b, 'c, 'info, SenderContext<'info>>,
         split_id: u64,
-        amount: u64
+        amount: u64,
     ) -> ProgramResult {
         let current_split = &mut ctx.accounts.base_account.splits[split_id as usize];
         let msg_sender = &mut ctx.accounts.user;
@@ -76,7 +76,7 @@ pub mod split {
             &ix,
             &[
                 msg_sender.to_account_info(),
-                ctx.accounts.pda_account.to_account_info()
+                ctx.accounts.pda_account.to_account_info(),
             ],
         )?;
 
@@ -116,9 +116,9 @@ pub mod split {
                         &[
                             ctx.accounts.pda_account.to_account_info(),
                             ctx.accounts.receiver.to_account_info(),
-                            ctx.accounts.system_program.to_account_info()
+                            ctx.accounts.system_program.to_account_info(),
                         ],
-                        &[&[b"test", &[254]]]
+                        &[&[b"test", &[251]]],
                     )?;
 
                     current_payment.paid_to.push(ctx.accounts.receiver.key());
@@ -163,7 +163,7 @@ pub struct NewSplitContext<'info> {
     #[account(mut)]
     pub base_account: Account<'info, BaseAccount>,
     pub user: Signer<'info>,
-    pub system_program: Program<'info, System>
+    pub system_program: Program<'info, System>,
 }
 
 #[derive(Accounts)]
@@ -173,7 +173,7 @@ pub struct SenderContext<'info> {
     pub user: Signer<'info>,
     pub system_program: Program<'info, System>,
     #[account(mut)]
-    pub pda_account: SystemAccount<'info>
+    pub pda_account: SystemAccount<'info>,
 }
 
 #[derive(Accounts)]
@@ -184,5 +184,6 @@ pub struct WithdrawContext<'info> {
     pub system_program: Program<'info, System>,
     #[account(mut)]
     pub pda_account: SystemAccount<'info>,
-    pub receiver: AccountInfo<'info>
+    #[account(mut)]
+    pub receiver: AccountInfo<'info>,
 }
