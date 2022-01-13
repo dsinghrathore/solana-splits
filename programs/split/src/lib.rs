@@ -1,7 +1,7 @@
 use anchor_lang::prelude::Pubkey;
 use anchor_lang::prelude::*;
-use percentage::Percentage;
 use anchor_lang::prelude::{Key, Signer};
+use percentage::Percentage;
 
 #[derive(Debug)]
 enum PDA {
@@ -63,7 +63,7 @@ pub mod split {
         split_id: u64,
         amount: u64,
         // nonce: u8
-                   // receivers: Vec<Account<'info, T>>
+        // receivers: Vec<Account<'info, T>>
     ) -> ProgramResult {
         // let split_perc = &ctx.accounts.base_account.splits_perc[split_id as usize];
         // let split_keys = &ctx.accounts.base_account.splits_keys[split_id as usize];
@@ -94,7 +94,7 @@ pub mod split {
             &ix,
             &[
                 msg_sender.to_account_info(),
-                ctx.accounts.pda_account.to_account_info()
+                ctx.accounts.pda_account.to_account_info(),
             ],
         )?;
 
@@ -153,15 +153,18 @@ pub mod split {
                         &ctx.accounts.receiver.key(),
                         split_amount,
                     );
-
+                    let (_pda, bump) = Pubkey::find_program_address(
+                        &["test".as_bytes()],
+                        &ctx.accounts.system_program.key(),
+                    );
                     anchor_lang::solana_program::program::invoke_signed(
                         &ix,
                         &[
                             ctx.accounts.pda_account.to_account_info(),
                             ctx.accounts.receiver.to_account_info(),
-                            ctx.accounts.system_program.to_account_info()
+                            ctx.accounts.system_program.to_account_info(),
                         ],
-                        &[&[b"test", &[254]]]
+                        &[&["test".as_bytes(), &[bump]]],
                     )?;
 
                     current_payment.paid_to.push(ctx.accounts.receiver.key());
@@ -236,7 +239,7 @@ pub struct NewSplitContext<'info> {
     #[account(mut)]
     pub base_account: Account<'info, BaseAccount>,
     pub user: Signer<'info>,
-    pub system_program: Program<'info, System>
+    pub system_program: Program<'info, System>,
 }
 
 #[derive(Accounts)]
@@ -246,7 +249,7 @@ pub struct SenderContext<'info> {
     pub user: Signer<'info>,
     pub system_program: Program<'info, System>,
     #[account(mut)]
-    pub pda_account: SystemAccount<'info>
+    pub pda_account: SystemAccount<'info>,
 }
 
 #[derive(Accounts)]
@@ -257,5 +260,5 @@ pub struct WithdrawContext<'info> {
     pub system_program: Program<'info, System>,
     #[account(mut)]
     pub pda_account: SystemAccount<'info>,
-    pub receiver: AccountInfo<'info>
+    pub receiver: AccountInfo<'info>,
 }
