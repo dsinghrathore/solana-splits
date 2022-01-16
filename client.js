@@ -86,7 +86,7 @@ async function main() {
     // );
 
     console.log("📝 New Split 1", new_split_1);
-    console.log(program.account);
+    // console.log(program.account);
     let split_account_info = await program.account.splitAccount.fetch(
       splitAccount.publicKey
     );
