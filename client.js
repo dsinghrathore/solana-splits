@@ -3,9 +3,10 @@
 // ergonomic example, see `tests/basic-0.js` in this workspace.
 
 const anchor = require("@project-serum/anchor");
+const { Keypair } = require("@solana/web3.js");
 const { expect } = require("chai");
 const { SystemProgram } = anchor.web3;
-const idl = require("./idl.json");
+const idl = require("./target/idl/split.json");
 const provider = anchor.Provider.env();
 // Configure the local cluster.
 anchor.setProvider(provider);
@@ -18,7 +19,7 @@ async function main() {
   );
   const baseAccount = anchor.web3.Keypair.generate();
   const splitAdmin = anchor.web3.Keypair.generate();
-  const bankAccount = anchor.web3.Keypair.generate();
+  const splitAccount = anchor.web3.Keypair.generate();
   const aone = anchor.web3.Keypair.generate();
   const atwo = anchor.web3.Keypair.generate();
   // const aone = new anchor.web3.PublicKey("4m1eWNndyhE8eJyQcde8MYMV3tzP4wS5xsARZQTHAKpo");
@@ -52,80 +53,96 @@ async function main() {
   );
   console.log("Running client.");
   try {
+    let [pda, bump] = await anchor.web3.PublicKey.findProgramAddress(
+      [Buffer.from("test0")],
+      splitAccount.publicKey
+    );
+    // anchor.web3.PublicKey.findProgramAddress()
+    console.log(`bump:${bump} pubkey: ${pda.toBase58()}`);
     let new_split_1 = await program.rpc.newSplit(
       [new anchor.BN(60), new anchor.BN(40)],
       [provider.wallet.publicKey, atwo.publicKey],
       {
         accounts: {
           baseAccount: baseAccount.publicKey,
+          splitAccount: splitAccount.publicKey,
           user: provider.wallet.publicKey,
           systemProgram: SystemProgram.programId,
         },
+        signers: [splitAccount],
       }
     );
 
-    let new_split_2 = await program.rpc.newSplit(
-      [new anchor.BN(60), new anchor.BN(40)],
-      [aone.publicKey, athree.publicKey],
-      {
-        accounts: {
-          baseAccount: baseAccount.publicKey,
-          user: provider.wallet.publicKey,
-          systemProgram: SystemProgram.programId,
-        },
-      }
-    );
+    // let new_split_2 = await program.rpc.newSplit(
+    //   [new anchor.BN(60), new anchor.BN(40)],
+    //   [aone.publicKey, athree.publicKey],
+    //   {
+    //     accounts: {
+    //       baseAccount: baseAccount.publicKey,
+    //       user: provider.wallet.publicKey,
+    //       systemProgram: SystemProgram.programId,
+    //     },
+    //   }
+    // );
 
     console.log("📝 New Split 1", new_split_1);
-    console.log("📝 New Split 2", new_split_2);
-
+    console.log(program.account);
+    let split_account_info = await program.account.splitAccount.fetch(
+      splitAccount.publicKey
+    );
     let base_account_info = await program.account.baseAccount.fetch(
       baseAccount.publicKey
     );
-    expect(base_account_info.splits.length).is.equal(2);
+    console.log("Split acc:", split_account_info);
+    console.log("base acc:", base_account_info);
 
-    // GET A PDA
-    let [pda, bump] = await anchor.web3.PublicKey.findProgramAddress(
-      [Buffer.from("test")],
-      programId
-    );
-    console.log(`bump: ${bump}, pubkey: ${pda.toBase58()}`);
+    //   let base_account_info = await program.account.baseAccount.fetch(
+    //     baseAccount.publicKey
+    //   );
+    //   expect(base_account_info.splits.length).is.equal(2);
 
-    let send_sol_tx = await program.rpc.sendSol(
-      new anchor.BN(0),
-      new anchor.BN(100000),
-      {
-        accounts: {
-          baseAccount: baseAccount.publicKey,
-          user: provider.wallet.publicKey,
-          systemProgram: SystemProgram.programId,
-          pdaAccount: pda,
-        },
-      }
-    );
+    //   // GET A PDA
+    //   let [pda, bump] = await anchor.web3.PublicKey.findProgramAddress(
+    //     [Buffer.from("test")],
+    //     programId
+    //   );
+    //   console.log(`bump: ${bump}, pubkey: ${pda.toBase58()}`);
 
-    console.log("📝 Sent Sol", send_sol_tx);
-    try {
-      let withdraw_tx = await program.rpc.withdraw(
-        new anchor.BN(0),
-        new anchor.BN(0),
-        {
-          accounts: {
-            baseAccount: baseAccount.publicKey,
-            msgSender: provider.wallet.publicKey,
-            systemProgram: SystemProgram.programId,
-            pdaAccount: pda,
-            receiver: atwo.publicKey,
-          },
-        }
-      );
-      console.log("📝 withdrew Sol", withdraw_tx);
-      console.log("🚀🚀🚀 LFG!!!! ");
-    } catch (error) {
-      console.log("Error 🟥", error);
-    }
+    //   let send_sol_tx = await program.rpc.sendSol(
+    //     new anchor.BN(0),
+    //     new anchor.BN(100000),
+    //     {
+    //       accounts: {
+    //         baseAccount: baseAccount.publicKey,
+    //         user: provider.wallet.publicKey,
+    //         systemProgram: SystemProgram.programId,
+    //         pdaAccount: pda,
+    //       },
+    //     }
+    //   );
 
-    console.log("Done!");
+    //   console.log("📝 Sent Sol", send_sol_tx);
+    //   try {
+    //     let withdraw_tx = await program.rpc.withdraw(
+    //       new anchor.BN(0),
+    //       new anchor.BN(0),
+    //       {
+    //         accounts: {
+    //           baseAccount: baseAccount.publicKey,
+    //           msgSender: provider.wallet.publicKey,
+    //           systemProgram: SystemProgram.programId,
+    //           pdaAccount: pda,
+    //           receiver: atwo.publicKey,
+    //         },
+    //       }
+    //     );
+    //     console.log("📝 withdrew Sol", withdraw_tx);
+    //     console.log("🚀🚀🚀 LFG!!!! ");
+    //   } catch (error) {
+    //     console.log("Error 🟥", error);
+    //   }
+
+    //   console.log("Done!");
   } catch (error) {
     console.log("Error 🟥", error);
   }

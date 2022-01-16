@@ -172,8 +172,9 @@ pub struct Initialize<'info> {
 pub struct NewSplitContext<'info> {
     #[account(mut)]
     pub base_account: Account<'info, BaseAccount>,
-    #[account(init,payer=user,space=9000)]
+    #[account(init,payer = user, space = 9000)]
     pub split_account: Account<'info, Split>,
+    #[account(mut)]
     pub user: Signer<'info>,
     pub system_program: Program<'info, System>,
 }

@@ -32,6 +32,11 @@
                     "isSigner": false
                 },
                 {
+                    "name": "splitAccount",
+                    "isMut": true,
+                    "isSigner": true
+                },
+                {
                     "name": "user",
                     "isMut": false,
                     "isSigner": true
@@ -56,102 +61,9 @@
                     }
                 }
             ]
-        },
-        {
-            "name": "sendSol",
-            "accounts": [
-                {
-                    "name": "baseAccount",
-                    "isMut": true,
-                    "isSigner": false
-                },
-                {
-                    "name": "user",
-                    "isMut": false,
-                    "isSigner": true
-                },
-                {
-                    "name": "systemProgram",
-                    "isMut": false,
-                    "isSigner": false
-                },
-                {
-                    "name": "pdaAccount",
-                    "isMut": true,
-                    "isSigner": false
-                }
-            ],
-            "args": [
-                {
-                    "name": "splitId",
-                    "type": "u64"
-                },
-                {
-                    "name": "amount",
-                    "type": "u64"
-                }
-            ]
-        },
-        {
-            "name": "withdraw",
-            "accounts": [
-                {
-                    "name": "baseAccount",
-                    "isMut": true,
-                    "isSigner": false
-                },
-                {
-                    "name": "msgSender",
-                    "isMut": false,
-                    "isSigner": true
-                },
-                {
-                    "name": "systemProgram",
-                    "isMut": false,
-                    "isSigner": false
-                },
-                {
-                    "name": "pdaAccount",
-                    "isMut": true,
-                    "isSigner": false
-                },
-                {
-                    "name": "receiver",
-                    "isMut": true,
-                    "isSigner": false
-                }
-            ],
-            "args": [
-                {
-                    "name": "splitId",
-                    "type": "u64"
-                },
-                {
-                    "name": "paymentId",
-                    "type": "u64"
-                }
-            ]
         }
     ],
     "accounts": [
-        {
-            "name": "BaseAccount",
-            "type": {
-                "kind": "struct",
-                "fields": [
-                    {
-                        "name": "splits",
-                        "type": {
-                            "vec": {
-                                "defined": "Split"
-                            }
-                        }
-                    }
-                ]
-            }
-        }
-    ],
-    "types": [
         {
             "name": "Split",
             "type": {
@@ -184,6 +96,20 @@
                 ]
             }
         },
+        {
+            "name": "BaseAccount",
+            "type": {
+                "kind": "struct",
+                "fields": [
+                    {
+                        "name": "splitsNonce",
+                        "type": "u64"
+                    }
+                ]
+            }
+        }
+    ],
+    "types": [
         {
             "name": "Payment",
             "type": {
