@@ -54,8 +54,8 @@ async function main() {
   console.log("Running client.");
   try {
     let [pda, bump] = await anchor.web3.PublicKey.findProgramAddress(
-      [Buffer.from("test0")],
-      splitAccount.publicKey
+      [Buffer.from("0")],
+      programId
     );
     // anchor.web3.PublicKey.findProgramAddress()
     console.log(`bump:${bump} pubkey: ${pda.toBase58()}`);
@@ -65,11 +65,12 @@ async function main() {
       {
         accounts: {
           baseAccount: baseAccount.publicKey,
-          splitAccount: splitAccount.publicKey,
+          splitAccount: pda,
           user: provider.wallet.publicKey,
           systemProgram: SystemProgram.programId,
+          authority: baseAccount.publicKey,
         },
-        signers: [splitAccount],
+        signers: [baseAccount],
       }
     );
 
@@ -102,24 +103,25 @@ async function main() {
     //   expect(base_account_info.splits.length).is.equal(2);
 
     //   // GET A PDA
-    //   let [pda, bump] = await anchor.web3.PublicKey.findProgramAddress(
-    //     [Buffer.from("test")],
-    //     programId
-    //   );
-    //   console.log(`bump: ${bump}, pubkey: ${pda.toBase58()}`);
+    // let [pda, bump] = await anchor.web3.PublicKey.findProgramAddress(
+    //   [Buffer.from("test")],
+    //   programId
+    // );
+    // console.log(`bump: ${bump}, pubkey: ${pda.toBase58()}`);
 
-    //   let send_sol_tx = await program.rpc.sendSol(
-    //     new anchor.BN(0),
-    //     new anchor.BN(100000),
-    //     {
-    //       accounts: {
-    //         baseAccount: baseAccount.publicKey,
-    //         user: provider.wallet.publicKey,
-    //         systemProgram: SystemProgram.programId,
-    //         pdaAccount: pda,
-    //       },
-    //     }
-    //   );
+    // let send_sol_tx = await program.rpc.sendSol(
+    //   new anchor.BN(0),
+    //   new anchor.BN(100000),
+    //   {
+    //     accounts: {
+    //       baseAccount: baseAccount.publicKey,
+    //       user: provider.wallet.publicKey,
+    //       systemProgram: SystemProgram.programId,
+    //       pdaAccount: pda,
+    //       splitAccount:splitAccount.publicKey
+    //     },
+    //   }
+    // );
 
     //   console.log("📝 Sent Sol", send_sol_tx);
     //   try {
