@@ -1,1 +1,1 @@
-ANCHOR_PROVIDER_URL=https://api.devnet.solana.com/ ANCHOR_WALLET=./solwal/id.json node --trace-warnings client.js
+ANCHOR_PROVIDER_URL=http://127.0.0.1:8899 ANCHOR_WALLET=./solwal/id.json node --trace-warnings client.js

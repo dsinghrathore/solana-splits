@@ -12,52 +12,51 @@ const provider = anchor.Provider.env();
 anchor.setProvider(provider);
 
 async function main() {
+  console.log("Running client.");
+  // console.log(provider.wallet.publicKey.toBuffer())
   // #region main
   // Read the generated IDL.
   const programId = new anchor.web3.PublicKey(
     "4tzDAD5KLntPhT8t3gjqs85vsT5aguZTNCoeRvKkt5zr"
   );
   // const baseAccount = anchor.web3.Keypair.generate();
-  const splitAdmin = anchor.web3.Keypair.generate();
+  // const splitAdmin = anchor.web3.Keypair.generate();
   // const splitAccount = anchor.web3.Keypair.generate();
-  const aone = anchor.web3.Keypair.generate();
+  // const aone = anchor.web3.Keypair.generate();
   const atwo = anchor.web3.Keypair.generate();
   // const aone = new anchor.web3.PublicKey("4m1eWNndyhE8eJyQcde8MYMV3tzP4wS5xsARZQTHAKpo");
-  // const atwo = new anchor.web3.PublicKey("BfPHFPUCzLukQBRrdrK3eDbzYB8cG58SCg8FhT3jvurX");
-  const athree = anchor.web3.Keypair.generate();
+  // const atwo = new anchor.web3.PublicKey(
+  //   "BfPHFPUCzLukQBRrdrK3eDbzYB8cG58SCg8FhT3jvurX"
+  // );
+  // const athree = anchor.web3.Keypair.generate();
   // Generate the program client from IDL.
   const program = new anchor.Program(idl, programId, provider);
-
+  const id = 8;
   // console.log(aone.publicKey.toString(), atwo.publicKey.toString());
   const [baseAccount, baseAccountBump] =
     await anchor.web3.PublicKey.findProgramAddress(
-      [
-        Buffer.from(provider.wallet.publicKey.toString().substring(0, 6)),
-        provider.wallet.publicKey.toBuffer(),
-      ],
+      [Buffer.from("initsplit" + id), provider.wallet.publicKey.toBuffer()],
       programId
     );
   // Execute the RPC.
   console.log(
     `slice:${Buffer.from(
-      provider.wallet.publicKey.toString().substring(0, 6)
+      provider.wallet.publicKey.toString()
     )}bump:${baseAccountBump} baseA:${baseAccount}`
   );
-  let initialize_tx = await program.rpc.initialize(
-    new anchor.BN(baseAccountBump),
-    {
-      accounts: {
-        baseAccount: baseAccount,
-        user: provider.wallet.publicKey,
-        systemProgram: SystemProgram.programId,
-        authority: provider.wallet.publicKey,
-      },
-    }
-  );
-
+  let initialize_tx = await program.rpc.initialize(baseAccountBump, {
+    accounts: {
+      baseAccount: baseAccount,
+      authority: provider.wallet.publicKey,
+      systemProgram: SystemProgram.programId,
+      // authority: provider.wallet.publicKey,
+    },
+    // signers: [atwo],
+  });
+  //ONCE INITIALIZED COMMENT THIS COS SEED WILL BE USED AGAIN GIVING AN ERROR
   console.log("📝 Your transaction signature", initialize_tx);
   // #endregion main
-  // let account = await program.account.baseAccount.fetch(baseAccount.publicKey);
+  // let account = await program.account.baseAccount.fetch(baseAccount);
   // console.log("🤺 Your account ", account);
   // console.log(
   //   "Pks",
@@ -65,28 +64,38 @@ async function main() {
   //   atwo.publicKey.toString(),
   //   athree.publicKey.toString()
   // );
-  console.log("Running client.");
+
   try {
-    // let [pda, bump] = await anchor.web3.PublicKey.findProgramAddress(
-    //   [Buffer.from("0")],
-    //   programId
+    const [splitAccount, splitAccountBump] =
+      await anchor.web3.PublicKey.findProgramAddress(
+        [
+          Buffer.from("solsplit_account" + id),
+          provider.wallet.publicKey.toBuffer(),
+        ],
+        programId
+      );
+    // console.log(
+    //   `slice:${Buffer.from(
+    //     provider.wallet.publicKey.toString().slice(-6)
+    //   )}bump:${splitAccountBump} baseA:${splitAccount}`
     // );
-    // // anchor.web3.PublicKey.findProgramAddress()
-    // console.log(`bump:${bump} pubkey: ${pda.toBase58()}`);
-    // let new_split_1 = await program.rpc.newSplit(
-    //   [new anchor.BN(60), new anchor.BN(40)],
-    //   [provider.wallet.publicKey, atwo.publicKey],
-    //   {
-    //     accounts: {
-    //       baseAccount: baseAccount.publicKey,
-    //       splitAccount: pda,
-    //       user: provider.wallet.publicKey,
-    //       systemProgram: SystemProgram.programId,
-    //       authority: baseAccount.publicKey,
-    //     },
-    //     signers: [baseAccount],
-    //   }
-    // );
+    // // // anchor.web3.PublicKey.findProgramAddress()
+    // console.log(`SA:${splitAccountBump} pubkey: ${splitAccount.toBase58()}`);
+    let new_split_1 = await program.rpc.newSplit(
+      [new anchor.BN(60), new anchor.BN(40)],
+      [provider.wallet.publicKey, atwo.publicKey],
+      splitAccountBump,
+      {
+        accounts: {
+          baseAccount: baseAccount,
+          splitAccount: splitAccount,
+          authority: provider.wallet.publicKey,
+          systemProgram: SystemProgram.programId,
+          // authority: provider.wallet.publicKey
+        },
+        // signers: [atwo],
+      }
+    );
     // let new_split_2 = await program.rpc.newSplit(
     //   [new anchor.BN(60), new anchor.BN(40)],
     //   [aone.publicKey, athree.publicKey],
@@ -98,14 +107,14 @@ async function main() {
     //     },
     //   }
     // );
-    // console.log("📝 New Split 1", new_split_1);
-    // // console.log(program.account);
+    console.log("📝 New Split 1", new_split_1);
+    // // // console.log(program.account);
     // let split_account_info = await program.account.splitAccount.fetch(
-    //   splitAccount.publicKey
+    //   splitAccount
     // );
-    // let base_account_info = await program.account.baseAccount.fetch(
-    //   baseAccount.publicKey
-    // );
+    // // let base_account_info = await program.account.baseAccount.fetch(
+    // //   baseAccount.publicKey
+    // // );
     // console.log("Split acc:", split_account_info);
     // console.log("base acc:", base_account_info);
     //   let base_account_info = await program.account.baseAccount.fetch(

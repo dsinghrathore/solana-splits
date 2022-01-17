@@ -1,11 +1,11 @@
-[programs.devnet]
+[programs.localnet]
 split = "4tzDAD5KLntPhT8t3gjqs85vsT5aguZTNCoeRvKkt5zr"
 
 [registry]
 url = "https://anchor.projectserum.com"
 
 [provider]
-cluster = "devnet"
+cluster = "localnet"
 wallet = "./solwal/id.json"
 
 [scripts]

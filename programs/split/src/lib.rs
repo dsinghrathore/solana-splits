@@ -3,10 +3,10 @@ use anchor_lang::prelude::*;
 use anchor_lang::prelude::{Key, Signer};
 use percentage::Percentage;
 
-#[derive(Debug)]
-enum PDA {
-    Pubkey,
-}
+// #[derive(Debug)]
+// enum PDA {
+//     Pubkey,
+// }
 
 declare_id!("4tzDAD5KLntPhT8t3gjqs85vsT5aguZTNCoeRvKkt5zr");
 
@@ -18,7 +18,7 @@ pub mod split {
     pub fn initialize(ctx: Context<Initialize>, base_account_bump: u8) -> ProgramResult {
         let base_account = &mut ctx.accounts.base_account;
         ctx.accounts.base_account.bump = base_account_bump;
-        ctx.accounts.base_account.authority = *ctx.accounts.user.to_account_info().key;
+        ctx.accounts.base_account.authority = *ctx.accounts.authority.to_account_info().key;
 
         Ok(())
     }
@@ -51,7 +51,7 @@ pub mod split {
         //     payments: vec![],
         // };
 
-        ctx.accounts.split_account.splits_creator = ctx.accounts.user.key();
+        ctx.accounts.split_account.splits_creator = ctx.accounts.authority.key();
         ctx.accounts.split_account.splits_percentage = split_perc;
         ctx.accounts.split_account.splits_keys = split_keys;
         ctx.accounts.split_account.payments = vec![];
@@ -173,35 +173,35 @@ pub struct Initialize<'info> {
     #[account(
         init,
         seeds = [
-            user.key().to_string()[0..6].as_bytes().as_ref(),
-            user.key().as_ref(),
+            b"initsplit8",
+            authority.key().as_ref(),
         ],
         bump = base_account_bump,
-        payer = user
+        payer = authority
     )]
     pub base_account: Account<'info, BaseAccount>,
     #[account(mut)]
-    pub user: Signer<'info>,
+    pub authority: Signer<'info>,
     pub system_program: Program<'info, System>,
 }
 
 #[derive(Accounts)]
 #[instruction(split_account_bump: u8)]
 pub struct NewSplitContext<'info> {
-    #[account(mut)]
+    #[account(mut, has_one=authority)]
     pub base_account: Account<'info, BaseAccount>,
     #[account(
         init,
         seeds = [
-            b"test0".as_ref(),
-            user.key().as_ref(),
+            b"solsplit_account8",
+            authority.key().as_ref(),
         ],
         bump = split_account_bump,
-        payer = user
+        payer = authority
     )]
     pub split_account: Account<'info, SplitAccount>,
     #[account(mut)]
-    pub user: Signer<'info>,
+    pub authority: Signer<'info>,
     pub system_program: Program<'info, System>,
 }
 
