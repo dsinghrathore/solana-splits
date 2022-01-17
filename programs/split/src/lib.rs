@@ -15,27 +15,25 @@ pub mod split {
     use super::*;
 
     #[allow(unused_variables)]
-    pub fn initialize(ctx: Context<Initialize>) -> ProgramResult {
+    pub fn initialize(ctx: Context<Initialize>, base_account_bump: u8) -> ProgramResult {
         let base_account = &mut ctx.accounts.base_account;
+        ctx.accounts.base_account.bump = base_account_bump;
+        ctx.accounts.base_account.authority = *ctx.accounts.user.to_account_info().key;
 
         Ok(())
     }
-    // #[derive(Accounts)]
-    // pub struct NewSplitContext<'info> {
-    //     #[account(mut)]
-    //     pub base_account: Account<'info, BaseAccount>,
-    //     pub user: Signer<'info>,
-    //     pub system_program: Program<'info, System>,
-    // }
     pub fn new_split(
         ctx: Context<NewSplitContext>,
         split_perc: Vec<u64>,
         split_keys: Vec<Pubkey>,
+        split_account_bump: u8,
     ) -> ProgramResult {
         let base_account = &mut ctx.accounts.base_account;
         let mut total_percentage = 0;
         let mut index = 0;
-        let split_account = &mut ctx.accounts.split_account;
+
+        ctx.accounts.split_account.bump = split_account_bump;
+
         for item in split_perc.iter() {
             total_percentage = total_percentage + item;
             index = index + 1;
@@ -53,10 +51,10 @@ pub mod split {
         //     payments: vec![],
         // };
 
-        split_account.splits_creator = ctx.accounts.user.key();
-        split_account.splits_percentage = split_perc;
-        split_account.splits_keys = split_keys;
-        split_account.payments = vec![];
+        ctx.accounts.split_account.splits_creator = ctx.accounts.user.key();
+        ctx.accounts.split_account.splits_percentage = split_perc;
+        ctx.accounts.split_account.splits_keys = split_keys;
+        ctx.accounts.split_account.payments = vec![];
         base_account.splits_nonce += 1;
 
         Ok(())
@@ -145,7 +143,10 @@ pub mod split {
 }
 
 #[account]
+#[derive(Default)]
 pub struct SplitAccount {
+    pub authority: Pubkey,
+    pub bump: u8,
     pub splits_creator: Pubkey,
     pub splits_percentage: Vec<u64>,
     pub splits_keys: Vec<Pubkey>,
@@ -159,13 +160,25 @@ pub struct Payment {
 }
 
 #[account]
+#[derive(Default)]
 pub struct BaseAccount {
     pub splits_nonce: u64,
+    pub bump: u8,
+    pub authority: Pubkey,
 }
 
 #[derive(Accounts)]
+#[instruction(base_account_bump: u8)]
 pub struct Initialize<'info> {
-    #[account(init, payer = user, space = 9000)]
+    #[account(
+        init,
+        seeds = [
+            b"test0".as_ref(),
+            user.key().as_ref(),
+        ],
+        bump = base_account_bump,
+        payer = user
+    )]
     pub base_account: Account<'info, BaseAccount>,
     #[account(mut)]
     pub user: Signer<'info>,
@@ -173,10 +186,19 @@ pub struct Initialize<'info> {
 }
 
 #[derive(Accounts)]
+#[instruction(split_account_bump: u8)]
 pub struct NewSplitContext<'info> {
     #[account(mut)]
     pub base_account: Account<'info, BaseAccount>,
-    #[account(init,payer = user, space = 9000)]
+    #[account(
+        init,
+        seeds = [
+            b"test0".as_ref(),
+            user.key().as_ref(),
+        ],
+        bump = split_account_bump,
+        payer = user
+    )]
     pub split_account: Account<'info, SplitAccount>,
     #[account(mut)]
     pub user: Signer<'info>,
