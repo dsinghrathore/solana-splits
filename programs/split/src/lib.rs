@@ -173,7 +173,7 @@ pub struct Initialize<'info> {
     #[account(
         init,
         seeds = [
-            b"test0".as_ref(),
+            user.key().to_string()[0..6].as_bytes().as_ref(),
             user.key().as_ref(),
         ],
         bump = base_account_bump,
