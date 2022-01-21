@@ -16,9 +16,9 @@ pub mod split {
 
     #[allow(unused_variables)]
     pub fn initialize(ctx: Context<Initialize>, base_account_bump: u8) -> ProgramResult {
-        let base_account = &mut ctx.accounts.base_account;
+        // let base_account = &mut ctx.accounts.base_account;
         ctx.accounts.base_account.bump = base_account_bump;
-        ctx.accounts.base_account.authority = *ctx.accounts.authority.to_account_info().key;
+        ctx.accounts.base_account.authority = ctx.accounts.authority.to_account_info().key();
 
         Ok(())
     }
@@ -35,6 +35,7 @@ pub mod split {
         ctx.accounts.split_account.bump = split_account_bump;
 
         for item in split_perc.iter() {
+            msg!(&item.to_string());
             total_percentage = total_percentage + item;
             index = index + 1;
         }
@@ -173,7 +174,7 @@ pub struct Initialize<'info> {
     #[account(
         init,
         seeds = [
-            b"initsplit8",
+            b"initsplit23",
             authority.key().as_ref(),
         ],
         bump = base_account_bump,
@@ -186,15 +187,16 @@ pub struct Initialize<'info> {
 }
 
 #[derive(Accounts)]
-#[instruction(split_account_bump: u8)]
+#[instruction(split_perc:Vec<u64>,split_keys:Vec<Pubkey>,split_account_bump: u8)]
 pub struct NewSplitContext<'info> {
     #[account(mut, has_one=authority)]
     pub base_account: Account<'info, BaseAccount>,
     #[account(
         init,
         seeds = [
-            b"solsplit_account8",
+            b"solsplit_account23",
             authority.key().as_ref(),
+            &[base_account.splits_nonce as u8].as_ref()
         ],
         bump = split_account_bump,
         payer = authority

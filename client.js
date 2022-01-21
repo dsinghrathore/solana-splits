@@ -31,11 +31,12 @@ async function main() {
   // const athree = anchor.web3.Keypair.generate();
   // Generate the program client from IDL.
   const program = new anchor.Program(idl, programId, provider);
-  const id = 8;
+  // const id = 11;
+  // console.log(program.rpc.newSplit);
   // console.log(aone.publicKey.toString(), atwo.publicKey.toString());
   const [baseAccount, baseAccountBump] =
     await anchor.web3.PublicKey.findProgramAddress(
-      [Buffer.from("initsplit" + id), provider.wallet.publicKey.toBuffer()],
+      [Buffer.from("initsplit23"), provider.wallet.publicKey.toBuffer()],
       programId
     );
   // Execute the RPC.
@@ -69,8 +70,9 @@ async function main() {
     const [splitAccount, splitAccountBump] =
       await anchor.web3.PublicKey.findProgramAddress(
         [
-          Buffer.from("solsplit_account" + id),
+          Buffer.from("solsplit_account23"),
           provider.wallet.publicKey.toBuffer(),
+          new anchor.BN(0).toArrayLike(Buffer),
         ],
         programId
       );
@@ -82,9 +84,10 @@ async function main() {
     // // // anchor.web3.PublicKey.findProgramAddress()
     // console.log(`SA:${splitAccountBump} pubkey: ${splitAccount.toBase58()}`);
     let new_split_1 = await program.rpc.newSplit(
-      [new anchor.BN(60), new anchor.BN(40)],
+      [(new anchor.BN(60), new anchor.BN(40))],
       [provider.wallet.publicKey, atwo.publicKey],
       splitAccountBump,
+
       {
         accounts: {
           baseAccount: baseAccount,
