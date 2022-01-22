@@ -36,7 +36,7 @@ async function main() {
   // console.log(aone.publicKey.toString(), atwo.publicKey.toString());
   const [baseAccount, baseAccountBump] =
     await anchor.web3.PublicKey.findProgramAddress(
-      [Buffer.from("initsplit23"), provider.wallet.publicKey.toBuffer()],
+      [Buffer.from("initsplit36"), provider.wallet.publicKey.toBuffer()],
       programId
     );
   // Execute the RPC.
@@ -70,9 +70,10 @@ async function main() {
     const [splitAccount, splitAccountBump] =
       await anchor.web3.PublicKey.findProgramAddress(
         [
-          Buffer.from("solsplit_account23"),
+          Buffer.from("solsplit_account36"),
           provider.wallet.publicKey.toBuffer(),
           new anchor.BN(0).toArrayLike(Buffer),
+          //QUERY SPLIT NONCE AND PLUS ONE IT AND PUT IT HERE
         ],
         programId
       );
@@ -83,8 +84,9 @@ async function main() {
     // );
     // // // anchor.web3.PublicKey.findProgramAddress()
     // console.log(`SA:${splitAccountBump} pubkey: ${splitAccount.toBase58()}`);
+
     let new_split_1 = await program.rpc.newSplit(
-      [(new anchor.BN(60), new anchor.BN(40))],
+      [new anchor.BN(60), new anchor.BN(40)],
       [provider.wallet.publicKey, atwo.publicKey],
       splitAccountBump,
 
@@ -125,45 +127,46 @@ async function main() {
     //   );
     //   expect(base_account_info.splits.length).is.equal(2);
     //   // GET A PDA
-    // let [pda, bump] = await anchor.web3.PublicKey.findProgramAddress(
-    //   [Buffer.from("test")],
-    //   programId
-    // );
-    // console.log(`bump: ${bump}, pubkey: ${pda.toBase58()}`);
-    // let send_sol_tx = await program.rpc.sendSol(
-    //   new anchor.BN(0),
-    //   new anchor.BN(100000),
-    //   {
-    //     accounts: {
-    //       baseAccount: baseAccount.publicKey,
-    //       user: provider.wallet.publicKey,
-    //       systemProgram: SystemProgram.programId,
-    //       pdaAccount: pda,
-    //       splitAccount:splitAccount.publicKey
-    //     },
-    //   }
-    // );
-    //   console.log("📝 Sent Sol", send_sol_tx);
-    //   try {
-    //     let withdraw_tx = await program.rpc.withdraw(
-    //       new anchor.BN(0),
-    //       new anchor.BN(0),
-    //       {
-    //         accounts: {
-    //           baseAccount: baseAccount.publicKey,
-    //           msgSender: provider.wallet.publicKey,
-    //           systemProgram: SystemProgram.programId,
-    //           pdaAccount: pda,
-    //           receiver: atwo.publicKey,
-    //         },
-    //       }
-    //     );
-    //     console.log("📝 withdrew Sol", withdraw_tx);
-    //     console.log("🚀🚀🚀 LFG!!!! ");
-    //   } catch (error) {
-    //     console.log("Error 🟥", error);
-    //   }
-    //   console.log("Done!");
+    let [pda, bump] = await anchor.web3.PublicKey.findProgramAddress(
+      [Buffer.from("test")],
+      programId
+    );
+    console.log(`bump: ${bump}, pubkey: ${pda.toBase58()}`);
+    let send_sol_tx = await program.rpc.sendSol(
+      // new anchor.BN(0),
+      new anchor.BN(100000),
+      {
+        accounts: {
+          baseAccount: baseAccount,
+          user: provider.wallet.publicKey,
+          systemProgram: SystemProgram.programId,
+          pdaAccount: pda,
+          splitAccount: splitAccount,
+        },
+      }
+    );
+    console.log("📝 Sent Sol", send_sol_tx);
+    try {
+      let withdraw_tx = await program.rpc.withdraw(
+        // new anchor.BN(0),
+        new anchor.BN(0), // query payment id here
+        {
+          accounts: {
+            baseAccount: baseAccount,
+            msgSender: provider.wallet.publicKey,
+            systemProgram: SystemProgram.programId,
+            pdaAccount: pda,
+            receiver: atwo.publicKey,
+            splitAccount: splitAccount,
+          },
+        }
+      );
+      console.log("📝 withdrew Sol", withdraw_tx);
+      console.log("🚀🚀🚀 LFG!!!! ");
+    } catch (error) {
+      console.log("Error 🟥", error);
+    }
+    console.log("Done!");
   } catch (error) {
     console.log("Error 🟥", error);
   }

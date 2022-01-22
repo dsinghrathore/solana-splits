@@ -28,6 +28,7 @@ pub mod split {
         split_keys: Vec<Pubkey>,
         split_account_bump: u8,
     ) -> ProgramResult {
+        msg!("entrypoint {:?}", split_perc);
         let base_account = &mut ctx.accounts.base_account;
         let mut total_percentage = 0;
         let mut index = 0;
@@ -35,7 +36,8 @@ pub mod split {
         ctx.accounts.split_account.bump = split_account_bump;
 
         for item in split_perc.iter() {
-            msg!(&item.to_string());
+            msg!("percs {:?}", split_perc);
+            msg!("Hello {}", &item.to_string());
             total_percentage = total_percentage + item;
             index = index + 1;
         }
@@ -51,12 +53,20 @@ pub mod split {
         //     splits_keys: split_keys,
         //     payments: vec![],
         // };
-
+        msg!("strt");
         ctx.accounts.split_account.splits_creator = ctx.accounts.authority.key();
+        msg!("creator {:?}", ctx.accounts.split_account.splits_creator);
         ctx.accounts.split_account.splits_percentage = split_perc;
+        msg!(
+            "splt perc {:?}",
+            ctx.accounts.split_account.splits_percentage
+        );
         ctx.accounts.split_account.splits_keys = split_keys;
+        msg!("splt keys {:?}", ctx.accounts.split_account.splits_keys);
         ctx.accounts.split_account.payments = vec![];
-        base_account.splits_nonce += 1;
+        msg!("splt payments {:?}", ctx.accounts.split_account.payments);
+        base_account.splits_nonce = base_account.splits_nonce + 1;
+        msg!("splt nonce {:?}", ctx.accounts.base_account.splits_nonce);
 
         Ok(())
     }
@@ -174,11 +184,12 @@ pub struct Initialize<'info> {
     #[account(
         init,
         seeds = [
-            b"initsplit23",
+            b"initsplit36",
             authority.key().as_ref(),
         ],
         bump = base_account_bump,
-        payer = authority
+        payer = authority,
+        space=9000
     )]
     pub base_account: Account<'info, BaseAccount>,
     #[account(mut)]
@@ -194,12 +205,13 @@ pub struct NewSplitContext<'info> {
     #[account(
         init,
         seeds = [
-            b"solsplit_account23",
+            b"solsplit_account36",
             authority.key().as_ref(),
             &[base_account.splits_nonce as u8].as_ref()
         ],
         bump = split_account_bump,
-        payer = authority
+        payer = authority,
+        space=9000
     )]
     pub split_account: Account<'info, SplitAccount>,
     #[account(mut)]
